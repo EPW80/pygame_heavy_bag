@@ -23,9 +23,13 @@ class Menu:
         """Handle keyboard input for menu navigation."""
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:
-                self.selected_option = (self.selected_option - 1) % len(self.options)
+                self.selected_option = (
+                    self.selected_option - 1
+                ) % len(self.options)
             elif event.key == pygame.K_DOWN:
-                self.selected_option = (self.selected_option + 1) % len(self.options)
+                self.selected_option = (
+                    self.selected_option + 1
+                ) % len(self.options)
             elif event.key == pygame.K_RETURN:
                 return self.options[self.selected_option]
         return None

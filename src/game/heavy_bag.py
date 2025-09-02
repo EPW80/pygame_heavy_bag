@@ -74,12 +74,16 @@ class HeavyBag:
             self.glow_timer -= 1
             self.is_glowing = self.glow_timer % 10 < 5
 
-    def hit(self, force: float, punch_type: PunchType, rage_mode: bool = False) -> None:
+    def hit(
+        self, force: float, punch_type: PunchType, rage_mode: bool = False
+    ) -> None:
         """Apply a hit to the bag with physics and visual effects."""
         multiplier = 1.5 if rage_mode else 1.0
         self.hit_force = force * multiplier
         self.shake_intensity = force * 2 * multiplier
-        self.damage = min(self.max_damage, self.damage + force * 10 * multiplier)
+        self.damage = min(
+            self.max_damage, self.damage + force * 10 * multiplier
+        )
 
         if self.damage >= self.max_damage * 0.8:
             self.glow_timer = 30
@@ -102,16 +106,22 @@ class HeavyBag:
 
         # Get appropriate bag sprite based on damage
         damage_ratio = self.damage / self.max_damage
-        sprite_name = "heavy_bag_damaged" if damage_ratio > 0.6 else "heavy_bag"
+        sprite_name = (
+            "heavy_bag_damaged" if damage_ratio > 0.6 else "heavy_bag"
+        )
         bag_sprite = graphics_manager.get_sprite(sprite_name)
 
         if bag_sprite:
             # Apply damage effects to sprite
-            display_sprite = self._apply_damage_effects(bag_sprite, damage_ratio)
+            display_sprite = self._apply_damage_effects(
+                bag_sprite, damage_ratio
+            )
 
             # Apply rotation based on angle
             if abs(self.angle) > 1:
-                display_sprite = pygame.transform.rotate(display_sprite, -self.angle)
+                display_sprite = pygame.transform.rotate(
+                    display_sprite, -self.angle
+                )
 
             # Glow effect when heavily damaged
             if self.is_glowing:
@@ -138,14 +148,19 @@ class HeavyBag:
             t = (i + 1) / segments
             chain_x = self.x + (bag_x - self.x) * t
             chain_y = self.y + (bag_y - self.y) * t
-            prev_x = self.x if i == 0 else self.x + (bag_x - self.x) * (i / segments)
-            prev_y = self.y if i == 0 else self.y + (bag_y - self.y) * (i / segments)
+            prev_x = (self.x if i == 0 else
+                      self.x + (bag_x - self.x) * (i / segments))
+            prev_y = (self.y if i == 0 else
+                      self.y + (bag_y - self.y) * (i / segments))
 
             # Main chain link
-            pygame.draw.line(screen, DARK_GRAY, (prev_x, prev_y), (chain_x, chain_y), 6)
+            pygame.draw.line(
+                screen, DARK_GRAY, (prev_x, prev_y), (chain_x, chain_y), 6
+            )
             # Highlight
             pygame.draw.line(
-                screen, GRAY, (prev_x + 1, prev_y + 1), (chain_x + 1, chain_y + 1), 2
+                screen, GRAY, (prev_x + 1, prev_y + 1),
+                (chain_x + 1, chain_y + 1), 2
             )
 
             # Chain links (rectangles)
@@ -159,13 +174,17 @@ class HeavyBag:
         # Main mounting bracket
         pygame.draw.circle(screen, DARK_GRAY, (int(self.x), int(self.y)), 15)
         pygame.draw.circle(screen, GRAY, (int(self.x), int(self.y)), 12)
-        pygame.draw.circle(screen, (120, 120, 120), (int(self.x), int(self.y)), 8)
+        pygame.draw.circle(
+            screen, (120, 120, 120), (int(self.x), int(self.y)), 8
+        )
 
         # Bolts
         for angle in [0, 90, 180, 270]:
             bolt_x = self.x + math.cos(math.radians(angle)) * 10
             bolt_y = self.y + math.sin(math.radians(angle)) * 10
-            pygame.draw.circle(screen, DARK_GRAY, (int(bolt_x), int(bolt_y)), 2)
+            pygame.draw.circle(
+                screen, DARK_GRAY, (int(bolt_x), int(bolt_y)), 2
+            )
 
     def _apply_damage_effects(
         self, sprite: pygame.Surface, damage_ratio: float
@@ -175,10 +194,16 @@ class HeavyBag:
 
         if damage_ratio > 0.3:
             # Add red tint for damage
-            damage_overlay = pygame.Surface(sprite.get_size(), pygame.SRCALPHA)
+            damage_overlay = pygame.Surface(
+                sprite.get_size(), pygame.SRCALPHA
+            )
             red_intensity = int(damage_ratio * 100)
-            damage_overlay.fill((red_intensity, 0, 0, int(damage_ratio * 80)))
-            damaged_sprite.blit(damage_overlay, (0, 0), special_flags=pygame.BLEND_ADD)
+            damage_overlay.fill(
+                (red_intensity, 0, 0, int(damage_ratio * 80))
+            )
+            damaged_sprite.blit(
+                damage_overlay, (0, 0), special_flags=pygame.BLEND_ADD
+            )
 
         if damage_ratio > 0.7:
             # Add wear marks
@@ -186,22 +211,28 @@ class HeavyBag:
                 x = random.randint(10, sprite.get_width() - 10)
                 y = random.randint(10, sprite.get_height() - 10)
                 pygame.draw.circle(
-                    damaged_sprite, DARK_RED, (x, y), random.randint(2, 5)
+                    damaged_sprite, DARK_RED, (x, y),
+                    random.randint(2, 5)
                 )
 
         return damaged_sprite
 
     def _draw_damage_glow(
-        self, screen: pygame.Surface, x: float, y: float, sprite: pygame.Surface
+        self, screen: pygame.Surface, x: float, y: float,
+        sprite: pygame.Surface
     ) -> None:
         """Draw glowing effect for heavily damaged bag."""
         glow_surface = pygame.Surface(
-            (sprite.get_width() + 20, sprite.get_height() + 20), pygame.SRCALPHA
+            (sprite.get_width() + 20, sprite.get_height() + 20),
+            pygame.SRCALPHA
         )
 
         # Multiple glow rings
         for i in range(3):
-            center = (glow_surface.get_width() // 2, glow_surface.get_height() // 2)
+            center = (
+                glow_surface.get_width() // 2,
+                glow_surface.get_height() // 2
+            )
             pygame.draw.ellipse(
                 glow_surface,
                 RED,
@@ -232,16 +263,24 @@ class HeavyBag:
             bar_y = y - 30
 
             pygame.draw.rect(
-                screen, BLACK, (bar_x - 1, bar_y - 1, bar_width + 2, bar_height + 2)
+                screen, BLACK,
+                (bar_x - 1, bar_y - 1, bar_width + 2, bar_height + 2)
             )
-            pygame.draw.rect(screen, DARK_GRAY, (bar_x, bar_y, bar_width, bar_height))
+            pygame.draw.rect(
+                screen, DARK_GRAY, (bar_x, bar_y, bar_width, bar_height)
+            )
 
             # Damage fill
             fill_width = int(bar_width * damage_ratio)
-            color = (
-                RED if damage_ratio > 0.7 else ORANGE if damage_ratio > 0.4 else YELLOW
+            if damage_ratio > 0.7:
+                color = RED
+            elif damage_ratio > 0.4:
+                color = ORANGE
+            else:
+                color = YELLOW
+            pygame.draw.rect(
+                screen, color, (bar_x, bar_y, fill_width, bar_height)
             )
-            pygame.draw.rect(screen, color, (bar_x, bar_y, fill_width, bar_height))
 
             # Damage text
             font = pygame.font.Font(None, 24)
@@ -275,7 +314,9 @@ class HeavyBag:
                 2,
             )
 
-            trail_rect = trail_surface.get_rect(center=(x, y + self.height // 2))
+            trail_rect = trail_surface.get_rect(
+                center=(x, y + self.height // 2)
+            )
             screen.blit(trail_surface, trail_rect)
 
     def _draw_fallback_bag(
@@ -283,7 +324,9 @@ class HeavyBag:
     ) -> None:
         """Fallback drawing method using basic shapes."""
         # Draw bag with damage visualization
-        bag_rect = pygame.Rect(bag_x - self.width // 2, bag_y, self.width, self.height)
+        bag_rect = pygame.Rect(
+            bag_x - self.width // 2, bag_y, self.width, self.height
+        )
 
         # Glow effect when heavily damaged
         if self.is_glowing:
@@ -301,7 +344,8 @@ class HeavyBag:
 
         # Highlight
         highlight_rect = pygame.Rect(
-            bag_x - self.width // 2 + 10, bag_y + 10, self.width // 3, self.height // 2
+            bag_x - self.width // 2 + 10, bag_y + 10,
+            self.width // 3, self.height // 2
         )
         pygame.draw.ellipse(screen, BROWN, highlight_rect)
 
@@ -311,7 +355,8 @@ class HeavyBag:
             pygame.draw.arc(
                 screen,
                 BLACK,
-                (bag_x - self.width // 2 + 5, bag_y + y_offset, self.width - 10, 20),
+                (bag_x - self.width // 2 + 5, bag_y + y_offset,
+                 self.width - 10, 20),
                 0,
                 math.pi,
                 2,

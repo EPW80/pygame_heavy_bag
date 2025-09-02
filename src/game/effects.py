@@ -346,7 +346,8 @@ class PowerUp:
             angle = random.uniform(0, math.pi * 2)
             speed = random.uniform(0.5, 1.5)
             px = self.x + math.cos(angle) * random.uniform(10, 20)
-            py = self.y + self.bob_offset + math.sin(angle) * random.uniform(10, 20)
+            py = (self.y + self.bob_offset +
+                  math.sin(angle) * random.uniform(10, 20))
 
             Particle(
                 px,
@@ -357,7 +358,7 @@ class PowerUp:
                 size=random.randint(1, 3),
                 lifetime=15,
                 gravity=0.1,
-                texture_name="energy",
+                texture_name="energy"
             )
 
 
@@ -399,7 +400,9 @@ class ComboEffect:
                 int(self.effect_surface.get_width() * self.scale),
                 int(self.effect_surface.get_height() * self.scale),
             )
-            scaled_surface = pygame.transform.scale(self.effect_surface, scaled_size)
+            scaled_surface = pygame.transform.scale(
+                self.effect_surface, scaled_size
+            )
             scaled_surface.set_alpha(int(255 * alpha))
 
             rect = scaled_surface.get_rect(center=(int(self.x), int(self.y)))

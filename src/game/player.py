@@ -267,7 +267,8 @@ class Player:
             for i in range(3):
                 alpha = 100 - i * 30
                 pygame.draw.circle(
-                    screen, (255, 0, 0, alpha), (head_x, head_y + 20), 40 + i * 10, 2
+                    screen, (255, 0, 0, alpha), (head_x, head_y + 20),
+                    40 + i * 10, 2
                 )
 
         # Head
@@ -278,8 +279,12 @@ class Player:
         # Eyes
         eye_offset = 5 if self.facing_right else -5
         eye_color = RED if self.rage_mode else BLACK
-        pygame.draw.circle(screen, eye_color, (head_x + eye_offset, head_y - 3), 2)
-        pygame.draw.circle(screen, eye_color, (head_x + eye_offset, head_y + 3), 2)
+        pygame.draw.circle(
+            screen, eye_color, (head_x + eye_offset, head_y - 3), 2
+        )
+        pygame.draw.circle(
+            screen, eye_color, (head_x + eye_offset, head_y + 3), 2
+        )
 
         # Body
         body_top = head_y + 18
@@ -312,7 +317,10 @@ class Player:
                 )
                 glove_color = GOLD if self.rage_mode else RED
                 pygame.draw.circle(
-                    screen, glove_color, (head_x + px * punch_dir, arm_y + py), 6
+                    screen,
+                    glove_color,
+                    (head_x + px * punch_dir, arm_y + py),
+                    6
                 )
         else:
             # Idle arms
@@ -349,5 +357,9 @@ class Player:
         )
 
         # Feet
-        pygame.draw.ellipse(screen, body_color, (head_x - 18, leg_bottom - 3, 12, 6))
-        pygame.draw.ellipse(screen, body_color, (head_x + 6, leg_bottom - 3, 12, 6))
+        pygame.draw.ellipse(
+            screen, body_color, (head_x - 18, leg_bottom - 3, 12, 6)
+        )
+        pygame.draw.ellipse(
+            screen, body_color, (head_x + 6, leg_bottom - 3, 12, 6)
+        )
