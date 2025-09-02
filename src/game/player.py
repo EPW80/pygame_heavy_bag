@@ -5,8 +5,14 @@ Player character with combat mechanics for the Heavy Bag Training game.
 import pygame
 import math
 from ..utils.constants import (
-    RED, GOLD, YELLOW, BLUE, WHITE, BLACK,
-    PunchType, Difficulty
+    RED,
+    GOLD,
+    YELLOW,
+    BLUE,
+    WHITE,
+    BLACK,
+    PunchType,
+    Difficulty,
 )
 from .graphics import graphics_manager
 
@@ -60,7 +66,9 @@ class Player:
 
         # Regenerate stamina
         if self.stamina < self.max_stamina:
-            self.stamina = min(self.max_stamina, self.stamina + self.stamina_regen)
+            self.stamina = min(
+                self.max_stamina, self.stamina + self.stamina_regen
+            )
 
         # Build power meter
         if self.power_meter < self.max_power:
@@ -136,9 +144,10 @@ class Player:
                 PunchType.JAB: "jab",
                 PunchType.CROSS: "cross",
                 PunchType.HOOK: "hook",
-                PunchType.UPPERCUT: "uppercut"
+                PunchType.UPPERCUT: "uppercut",
             }
-            sprite_name = f"player_{punch_names.get(self.current_punch, 'idle')}"
+            punch_name = punch_names.get(self.current_punch, 'idle')
+            sprite_name = f"player_{punch_name}"
 
         # Get sprite from graphics manager
         sprite = graphics_manager.get_sprite(sprite_name)
@@ -152,34 +161,45 @@ class Player:
             # Apply rage mode effects
             if self.rage_mode:
                 # Create rage aura effect
-                aura_surface = pygame.Surface(
-                    (sprite.get_width() + 20, sprite.get_height() + 20),
-                    pygame.SRCALPHA
+                aura_size = (
+                    sprite.get_width() + 20,
+                    sprite.get_height() + 20
                 )
+                aura_surface = pygame.Surface(aura_size, pygame.SRCALPHA)
                 for i in range(3):
                     pygame.draw.circle(
-                        aura_surface, RED,
+                        aura_surface,
+                        RED,
                         (aura_surface.get_width() // 2,
                          aura_surface.get_height() // 2),
-                        40 + i * 10, 2
+                        40 + i * 10,
+                        2,
                     )
 
                 # Blit aura first
-                aura_rect = aura_surface.get_rect(center=(head_x, head_y + 20))
+                aura_rect = aura_surface.get_rect(
+                    center=(head_x, head_y + 20)
+                )
                 screen.blit(aura_surface, aura_rect)
 
                 # Add red tint to sprite
                 rage_sprite = display_sprite.copy()
-                rage_overlay = pygame.Surface(rage_sprite.get_size(), pygame.SRCALPHA)
+                rage_overlay = pygame.Surface(
+                    rage_sprite.get_size(), pygame.SRCALPHA
+                )
                 rage_overlay.fill((*RED, 80))
-                rage_sprite.blit(rage_overlay, (0, 0), special_flags=pygame.BLEND_ADD)
+                rage_sprite.blit(
+                    rage_overlay, (0, 0), special_flags=pygame.BLEND_ADD
+                )
                 display_sprite = rage_sprite
 
             # Add screen shake effect during powerful attacks
             offset_x = 0
             offset_y = 0
-            if (self.animation_frame > 10 and
-                    self.current_punch in [PunchType.CROSS, PunchType.UPPERCUT]):
+            if self.animation_frame > 10 and self.current_punch in [
+                PunchType.CROSS,
+                PunchType.UPPERCUT,
+            ]:
                 offset_x = math.sin(self.animation_frame * 0.5) * 2
                 offset_y = math.cos(self.animation_frame * 0.3) * 1
 
@@ -195,7 +215,9 @@ class Player:
             # Fallback to original drawing method if sprite not found
             self._draw_fallback(screen, head_x, head_y)
 
-    def _draw_special_effects(self, screen: pygame.Surface, x: float, y: float) -> None:
+    def _draw_special_effects(
+        self, screen: pygame.Surface, x: float, y: float
+    ) -> None:
         """Draw additional visual effects on the player."""
         # Power meter charging effect
         if self.power_meter >= self.max_power:
@@ -209,16 +231,21 @@ class Player:
         # Multiplier effect
         if self.multiplier > 1:
             mult_color = GOLD if self.multiplier >= 2 else YELLOW
-            pygame.draw.circle(screen, mult_color, (int(x), int(y - 40)), 15, 3)
+            pygame.draw.circle(
+                screen, mult_color, (int(x), int(y - 40)), 15, 3
+            )
             font = pygame.font.Font(None, 24)
-            mult_text = font.render(f"{self.multiplier:.1f}x", True, mult_color)
+            mult_text = font.render(
+                f"{self.multiplier:.1f}x", True, mult_color
+            )
             mult_rect = mult_text.get_rect(center=(x, y - 40))
             screen.blit(mult_text, mult_rect)
 
         # Low stamina effect (breathing/panting)
         if self.stamina < 30:
             # Tired breathing effect
-            breathing_alpha = int(50 + math.sin(pygame.time.get_ticks() * 0.01) * 30)
+            ticks = pygame.time.get_ticks()
+            breathing_alpha = int(50 + math.sin(ticks * 0.01) * 30)
             tired_overlay = pygame.Surface((80, 80), pygame.SRCALPHA)
             tired_overlay.fill((*BLUE, breathing_alpha))
             tired_rect = tired_overlay.get_rect(center=(x, y))

@@ -6,9 +6,7 @@ import pygame
 import math
 import random
 from typing import Tuple, Optional
-from ..utils.constants import (
-    BLACK, WHITE, RED, GREEN, BLUE, GOLD
-)
+from ..utils.constants import BLACK, WHITE, RED, GREEN, BLUE, GOLD
 from .graphics import graphics_manager
 
 
@@ -63,10 +61,14 @@ class FloatingText:
                 int(text_surface.get_height() * self.scale),
             )
             text_surface = pygame.transform.scale(text_surface, scaled_size)
-            outline_surface = pygame.transform.scale(outline_surface, scaled_size)
+            outline_surface = pygame.transform.scale(
+                outline_surface, scaled_size
+            )
 
             if self.rotation != 0:
-                text_surface = pygame.transform.rotate(text_surface, self.rotation)
+                text_surface = pygame.transform.rotate(
+                    text_surface, self.rotation
+                )
                 outline_surface = pygame.transform.rotate(
                     outline_surface, self.rotation
                 )
@@ -77,7 +79,9 @@ class FloatingText:
 
         # Draw with outline
         text_rect = text_surface.get_rect(center=(self.x, self.y))
-        outline_rect = outline_surface.get_rect(center=(self.x + 2, self.y + 2))
+        outline_rect = outline_surface.get_rect(
+            center=(self.x + 2, self.y + 2)
+        )
 
         screen.blit(outline_surface, outline_rect)
         screen.blit(text_surface, text_rect)
@@ -135,7 +139,9 @@ class Particle:
                         max(1, int(texture.get_width() * scale_factor)),
                         max(1, int(texture.get_height() * scale_factor)),
                     )
-                    scaled_texture = pygame.transform.scale(texture, scaled_size)
+                    scaled_texture = pygame.transform.scale(
+                        texture, scaled_size
+                    )
 
                     # Apply rotation if needed
                     if self.rotation != 0:
@@ -144,7 +150,9 @@ class Particle:
                         )
 
                     scaled_texture.set_alpha(int(255 * alpha))
-                    rect = scaled_texture.get_rect(center=(int(self.x), int(self.y)))
+                    rect = scaled_texture.get_rect(
+                        center=(int(self.x), int(self.y))
+                    )
                     screen.blit(scaled_texture, rect)
                 return
 
@@ -156,7 +164,9 @@ class Particle:
                 if len(self.color) == 3
                 else self.color
             )
-            pygame.draw.circle(screen, color[:3], (int(self.x), int(self.y)), size)
+            pygame.draw.circle(
+                screen, color[:3], (int(self.x), int(self.y)), size
+            )
 
 
 class SweatDrop(Particle):
@@ -190,16 +200,21 @@ class HitEffect:
         self.rings = []
 
         # Create dynamic burst effect
-        color = (255, int(200), int(100)) if power < 5 else (255, int(150), int(50))
+        color = (
+            (255, int(200), int(100)) if power < 5
+            else (255, int(150), int(50))
+        )
         self.burst_surface = graphics_manager.create_hit_burst_effect(
             x, y, power, color
         )
 
         # Create expanding rings
         for i in range(3):
-            self.rings.append(
-                {"radius": 5 + i * 3, "speed": 2 + i * 0.5, "alpha": 255 - i * 60}
-            )
+            self.rings.append({
+                "radius": 5 + i * 3,
+                "speed": 2 + i * 0.5,
+                "alpha": 255 - i * 60
+            })
 
     def update(self) -> bool:
         """Update the hit effect expansion."""
@@ -282,7 +297,9 @@ class PowerUp:
                 scaled_sprite = pygame.transform.scale(sprite, new_size)
 
             if self.rotation != 0:
-                scaled_sprite = pygame.transform.rotate(scaled_sprite, self.rotation)
+                scaled_sprite = pygame.transform.rotate(
+                    scaled_sprite, self.rotation
+                )
 
             # Add blinking effect when about to expire
             if self.lifetime < 60:
@@ -297,7 +314,10 @@ class PowerUp:
                 self._create_trail_particle(screen)
         else:
             # Fallback to original drawing method
-            colors = {"stamina": GREEN, "power": BLUE, "multiplier": GOLD, "rage": RED}
+            colors = {
+                "stamina": GREEN, "power": BLUE,
+                "multiplier": GOLD, "rage": RED
+            }
             color = colors.get(self.type, WHITE)
 
             pygame.draw.circle(screen, color, (int(self.x), int(y_pos)), 15)
@@ -305,14 +325,20 @@ class PowerUp:
 
             # Draw icon
             font = pygame.font.Font(None, 20)
-            icons = {"stamina": "S", "power": "P", "multiplier": "2X", "rage": "R"}
+            icons = {
+                "stamina": "S", "power": "P",
+                "multiplier": "2X", "rage": "R"
+            }
             text = font.render(icons.get(self.type, "?"), True, WHITE)
             text_rect = text.get_rect(center=(self.x, y_pos))
             screen.blit(text, text_rect)
 
-    def _create_trail_particle(self, screen: pygame.Surface) -> None:
+    def _create_trail_particle(self) -> None:
         """Create trailing particles for enhanced visual appeal."""
-        colors = {"stamina": GREEN, "power": BLUE, "multiplier": GOLD, "rage": RED}
+        colors = {
+            "stamina": GREEN, "power": BLUE,
+            "multiplier": GOLD, "rage": RED
+        }
         color = colors.get(self.type, WHITE)
 
         # Create small trailing particles
