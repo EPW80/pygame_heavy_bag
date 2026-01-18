@@ -34,9 +34,12 @@ training features.
 ### Technical Improvements
 - **Modular Architecture**: Clean separation of concerns across 10+ modules
 - **Graphics Manager**: Centralized graphics system with asset management
-- **Enhanced Effects System**: Improved particles, floating text, and combo 
+- **Enhanced Effects System**: Improved particles, floating text, and combo
   effects
-- **Performance Optimizations**: Efficient rendering and memory management
+- **Performance Optimizations**: Font caching, particle pooling, efficient
+  rendering
+- **Logging System**: Dual output logging (file + console) for debugging
+- **Robust Save System**: JSON-based persistence with validation and backup
 - **Extensible Design**: Easy to add new features and content
 
 ## 🚀 Installation
@@ -110,17 +113,24 @@ heavy_bag_game/
 │   │   ├── player.py          # Player character and combat mechanics
 │   │   ├── heavy_bag.py       # Heavy bag physics and rendering
 │   │   ├── graphics.py        # Graphics manager and sprite system
-│   │   ├── effects.py         # Visual effects and particle system
-│   │   ├── menu.py            # Menu system and UI
-│   │   └── power_ups.py       # Power-up system and items
+│   │   ├── effects.py         # Visual effects, particles, and power-ups
+│   │   └── menu.py            # Menu system and UI
 │   └── utils/                  # Utility modules
 │       ├── __init__.py        # Utils package
 │       ├── constants.py       # Game constants and enums
-│       └── save_manager.py    # Save/load functionality
-├── assets/                     # Game assets (future expansion)
-│   ├── sounds/                # Sound effects
-│   └── images/                # Sprites and textures
+│       ├── logger.py          # Logging infrastructure
+│       └── save_manager.py    # Save/load functionality with validation
+├── tests/                      # Unit and integration tests
+│   ├── test_game.py           # Core game mechanics tests
+│   ├── test_integration.py    # Integration tests
+│   ├── test_platform.py       # Platform-specific tests (WSL, etc.)
+│   └── test_save_manager.py   # Save system tests
+├── logs/                      # Log files (auto-generated)
 ├── venv/                      # Virtual environment (created during setup)
+├── setup.py                   # Package configuration
+├── pyproject.toml             # Modern Python project metadata
+├── requirements.txt           # Production dependencies
+├── requirements-dev.txt       # Development dependencies
 ├── run_game.sh               # Game launcher script
 ├── README.md                 # This documentation
 └── heavy_bag_save.json       # Save file (auto-generated)
@@ -166,7 +176,24 @@ The project follows a modular architecture:
 - **Player**: Character mechanics, animations, and combat
 - **Heavy Bag**: Physics simulation and visual representation
 - **Effects**: Particle systems and visual feedback
-- **Utils**: Shared constants, enums, and save management
+- **Graphics**: Centralized sprite management with procedural fallbacks
+- **Utils**: Shared constants, enums, logging, and save management
+
+### Running Tests
+```bash
+# Run all tests
+python -m pytest tests/ -v
+
+# Or using unittest
+python -m unittest discover -s tests/ -v
+```
+
+**Current Test Coverage:**
+- Player mechanics (stamina, combos, punches, rage mode)
+- Heavy bag physics (swinging, damage, recovery)
+- Score calculations and difficulty levels
+- Save/load system with validation
+- Platform-specific configuration (WSL detection)
 
 ### Adding Features
 1. **New Punch Types**: Add to `PunchType` enum and update player mechanics
@@ -211,6 +238,29 @@ This is a single-file project conversion to modular architecture. Feel free to:
 
 This project is open source. Feel free to modify and distribute according to 
 your needs.
+
+## 📋 Recent Changes
+
+### Latest Updates
+- **Bug Fixes**:
+  - Fixed undefined variable crash in graphics sprite creation
+  - Fixed potential NameError in power-up collision handling
+  - Fixed memory leak in particle trail effects
+
+- **Performance Improvements**:
+  - Added font caching in heavy bag rendering (eliminates per-frame allocation)
+  - Optimized particle system with proper pool usage
+
+- **Code Quality**:
+  - Standardized logging throughout (removed print statements)
+  - Removed ~85 lines of duplicated drawing code
+  - Refactored hit detection with configurable parameters
+  - Added handlers for unimplemented menu options
+
+- **Testing**:
+  - Added comprehensive save manager tests
+  - Added platform-specific tests (WSL detection)
+  - 65 total tests (24 passing, 41 require pygame)
 
 ## 🏆 Credits
 

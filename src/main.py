@@ -13,6 +13,9 @@ Controls:
     X: Cross
     C: Hook
     V: Uppercut
+    Q: Front Kick
+    W: Roundhouse Kick
+    E: Low Kick
     SPACE: Special Attack
     ESC: Pause/Menu navigation
 """

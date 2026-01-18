@@ -5,9 +5,88 @@ Visual effects and particle systems for the Heavy Bag Training game.
 import pygame
 import math
 import random
-from typing import Tuple, Optional
+from typing import Tuple, Optional, List
 from ..utils.constants import BLACK, WHITE, RED, GREEN, BLUE, GOLD
 from .graphics import graphics_manager
+
+
+class ParticlePool:
+    """
+    Object pool for particle reuse to improve performance.
+
+    Instead of creating and destroying particles constantly,
+    we maintain a pool of particle objects that can be reused.
+    """
+
+    def __init__(self, initial_size: int = 100):
+        """Initialize the particle pool with a set of inactive particles."""
+        self.pool: List[Particle] = []
+        self.active_particles: List[Particle] = []
+        self.max_pool_size = 200
+
+        # Pre-allocate particles
+        for _ in range(initial_size):
+            self.pool.append(Particle(0, 0, 0, 0, WHITE))
+
+    def get_particle(
+        self,
+        x: float,
+        y: float,
+        vx: float,
+        vy: float,
+        color: Tuple[int, int, int],
+        size: int = 3,
+        lifetime: int = 30,
+        gravity: float = 0.3,
+        texture_name: Optional[str] = None,
+    ) -> Optional['Particle']:
+        """
+        Get a particle from the pool or create a new one if pool is empty.
+
+        Returns None if max pool size is exceeded (to prevent memory issues).
+        """
+        # Try to reuse from pool
+        if self.pool:
+            particle = self.pool.pop()
+            particle.reset(x, y, vx, vy, color, size, lifetime, gravity,
+                           texture_name)
+        else:
+            # Create new particle only if we haven't exceeded max size
+            if len(self.active_particles) < self.max_pool_size:
+                particle = Particle(x, y, vx, vy, color, size, lifetime,
+                                    gravity, texture_name)
+            else:
+                return None  # Too many particles, skip this one
+
+        self.active_particles.append(particle)
+        return particle
+
+    def update(self) -> None:
+        """Update all active particles and return dead ones to pool."""
+        still_alive = []
+
+        for particle in self.active_particles:
+            if particle.update():
+                still_alive.append(particle)
+            else:
+                # Return to pool for reuse
+                self.pool.append(particle)
+
+        self.active_particles = still_alive
+
+    def draw(self, screen: pygame.Surface) -> None:
+        """Draw all active particles."""
+        for particle in self.active_particles:
+            particle.draw(screen)
+
+    def clear(self) -> None:
+        """Return all active particles to the pool."""
+        self.pool.extend(self.active_particles)
+        self.active_particles.clear()
+
+    def get_active_count(self) -> int:
+        """Get the number of active particles."""
+        return len(self.active_particles)
 
 
 class FloatingText:
@@ -115,6 +194,32 @@ class Particle:
         self.rotation = 0
         self.rotation_speed = random.uniform(-5, 5)
 
+    def reset(
+        self,
+        x: float,
+        y: float,
+        vx: float,
+        vy: float,
+        color: Tuple[int, int, int],
+        size: int = 3,
+        lifetime: int = 30,
+        gravity: float = 0.3,
+        texture_name: Optional[str] = None,
+    ) -> None:
+        """Reset particle properties for reuse from pool."""
+        self.x = x
+        self.y = y
+        self.vx = vx
+        self.vy = vy
+        self.color = color
+        self.size = size
+        self.lifetime = lifetime
+        self.max_lifetime = lifetime
+        self.gravity = gravity
+        self.texture_name = texture_name
+        self.rotation = 0
+        self.rotation_speed = random.uniform(-5, 5)
+
     def update(self) -> bool:
         """Update particle physics and lifetime."""
         self.x += self.vx
@@ -184,6 +289,10 @@ class SweatDrop(Particle):
             gravity=0.5,
             texture_name="sweat",
         )
+
+
+# Global particle pool instance (must be after Particle class definition)
+particle_pool = ParticlePool()
 
 
 class HitEffect:
@@ -311,7 +420,7 @@ class PowerUp:
 
             # Add particle trail
             if self.particle_timer % 5 == 0:
-                self._create_trail_particle(screen)
+                self._create_trail_particle()
         else:
             # Fallback to original drawing method
             colors = {
@@ -349,7 +458,7 @@ class PowerUp:
             py = (self.y + self.bob_offset +
                   math.sin(angle) * random.uniform(10, 20))
 
-            Particle(
+            particle_pool.get_particle(
                 px,
                 py,
                 math.cos(angle) * speed,

@@ -30,7 +30,7 @@ class Menu:
                 self.selected_option = (
                     self.selected_option + 1
                 ) % len(self.options)
-            elif event.key == pygame.K_RETURN:
+            elif event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
                 return self.options[self.selected_option]
         return None
 
@@ -60,7 +60,9 @@ class Menu:
 
         # Instructions
         instructions = self.font_small.render(
-            "Use Arrow Keys to Navigate, Enter to Select", True, LIGHT_GRAY
+            "Arrow Keys: Navigate | Enter/Space: Select",
+            True,
+            LIGHT_GRAY
         )
         inst_rect = instructions.get_rect(
             center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 50)

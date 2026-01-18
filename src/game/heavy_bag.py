@@ -8,7 +8,26 @@ import random
 from ..utils.constants import (
     BLACK, WHITE, RED, DARK_RED, GRAY, DARK_GRAY, ORANGE, YELLOW,
     BROWN, DARK_BROWN,
-    PunchType, Difficulty
+    PunchType, Difficulty,
+    BAG_WIDTH,
+    BAG_HEIGHT,
+    BAG_MAX_ANGLE,
+    BAG_CHAIN_LENGTH,
+    BAG_MAX_DAMAGE,
+    BAG_DAMAGE_RECOVERY,
+    BAG_GLOW_THRESHOLD,
+    BAG_GLOW_DURATION,
+    BAG_GRAVITY_FORCE,
+    BAG_DAMPING_EASY,
+    BAG_DAMPING_NORMAL,
+    BAG_DAMPING_HARD,
+    BAG_DAMPING_EXPERT,
+    BAG_ANGLE_BOUNCE,
+    BAG_SHAKE_DECAY,
+    BAG_HIT_FORCE_DECAY,
+    BAG_RAGE_MULTIPLIER,
+    BAG_SHAKE_MULTIPLIER,
+    BAG_DAMAGE_MULTIPLIER,
 )
 from .graphics import graphics_manager
 
@@ -19,55 +38,61 @@ class HeavyBag:
     def __init__(self, x: float, y: float, difficulty: Difficulty):
         self.x = x
         self.y = y
-        self.width = 80
-        self.height = 180
+        self.width = BAG_WIDTH
+        self.height = BAG_HEIGHT
         self.angle = 0
         self.angular_velocity = 0
-        self.max_angle = 45
-        self.chain_length = 350
+        self.max_angle = BAG_MAX_ANGLE
+        self.chain_length = BAG_CHAIN_LENGTH
         self.shake_offset = 0
         self.shake_intensity = 0
         self.damage = 0
-        self.max_damage = 200
+        self.max_damage = BAG_MAX_DAMAGE
 
         # Difficulty adjustments
         self.damping = {
-            Difficulty.EASY: 0.99,
-            Difficulty.NORMAL: 0.985,
-            Difficulty.HARD: 0.98,
-            Difficulty.EXPERT: 0.975,
+            Difficulty.EASY: BAG_DAMPING_EASY,
+            Difficulty.NORMAL: BAG_DAMPING_NORMAL,
+            Difficulty.HARD: BAG_DAMPING_HARD,
+            Difficulty.EXPERT: BAG_DAMPING_EXPERT,
         }[difficulty]
 
         self.hit_force = 0
         self.is_glowing = False
         self.glow_timer = 0
 
+        # Cache fonts for performance (avoid creating each frame)
+        self._font_damage = pygame.font.Font(None, 24)
+        self._font_brand = pygame.font.Font(None, 20)
+
     def update(self) -> None:
         """Update bag physics and visual effects."""
         # Apply physics
-        gravity_force = -0.4 * math.sin(math.radians(self.angle))
+        gravity_force = BAG_GRAVITY_FORCE * math.sin(math.radians(self.angle))
         self.angular_velocity += gravity_force + self.hit_force
         self.angular_velocity *= self.damping
         self.angle += self.angular_velocity
 
         # Limit swing angle
         if abs(self.angle) > self.max_angle:
-            self.angle = self.max_angle if self.angle > 0 else -self.max_angle
-            self.angular_velocity *= -0.5
+            self.angle = (
+                self.max_angle if self.angle > 0 else -self.max_angle
+            )
+            self.angular_velocity *= BAG_ANGLE_BOUNCE
 
         # Update shake
         if self.shake_intensity > 0:
             self.shake_offset = random.uniform(
                 -self.shake_intensity, self.shake_intensity
             )
-            self.shake_intensity *= 0.9
+            self.shake_intensity *= BAG_SHAKE_DECAY
 
         # Reset hit force
-        self.hit_force *= 0.8
+        self.hit_force *= BAG_HIT_FORCE_DECAY
 
         # Recover from damage
         if self.damage > 0:
-            self.damage = max(0, self.damage - 0.3)
+            self.damage = max(0, self.damage - BAG_DAMAGE_RECOVERY)
 
         # Update glow
         if self.glow_timer > 0:
@@ -78,15 +103,16 @@ class HeavyBag:
         self, force: float, punch_type: PunchType, rage_mode: bool = False
     ) -> None:
         """Apply a hit to the bag with physics and visual effects."""
-        multiplier = 1.5 if rage_mode else 1.0
+        multiplier = BAG_RAGE_MULTIPLIER if rage_mode else 1.0
         self.hit_force = force * multiplier
-        self.shake_intensity = force * 2 * multiplier
+        self.shake_intensity = force * BAG_SHAKE_MULTIPLIER * multiplier
         self.damage = min(
-            self.max_damage, self.damage + force * 10 * multiplier
+            self.max_damage,
+            self.damage + force * BAG_DAMAGE_MULTIPLIER * multiplier
         )
 
-        if self.damage >= self.max_damage * 0.8:
-            self.glow_timer = 30
+        if self.damage >= self.max_damage * BAG_GLOW_THRESHOLD:
+            self.glow_timer = BAG_GLOW_DURATION
 
     def get_position(self) -> tuple[float, float]:
         """Get the current position of the bag considering swing and shake."""
@@ -148,10 +174,14 @@ class HeavyBag:
             t = (i + 1) / segments
             chain_x = self.x + (bag_x - self.x) * t
             chain_y = self.y + (bag_y - self.y) * t
-            prev_x = (self.x if i == 0 else
-                      self.x + (bag_x - self.x) * (i / segments))
-            prev_y = (self.y if i == 0 else
-                      self.y + (bag_y - self.y) * (i / segments))
+            prev_x = (
+                self.x if i == 0 else
+                self.x + (bag_x - self.x) * (i / segments)
+            )
+            prev_y = (
+                self.y if i == 0 else
+                self.y + (bag_y - self.y) * (i / segments)
+            )
 
             # Main chain link
             pygame.draw.line(
@@ -283,9 +313,8 @@ class HeavyBag:
             )
 
             # Damage text
-            font = pygame.font.Font(None, 24)
-            damage_text = font.render(f"{damage_percent}%", True, WHITE)
-            damage_outline = font.render(f"{damage_percent}%", True, BLACK)
+            damage_text = self._font_damage.render(f"{damage_percent}%", True, WHITE)
+            damage_outline = self._font_damage.render(f"{damage_percent}%", True, BLACK)
 
             damage_rect = damage_text.get_rect(center=(x, y - 45))
             outline_rect = damage_outline.get_rect(center=(x + 1, y - 44))
@@ -363,7 +392,6 @@ class HeavyBag:
             )
 
         # Brand text
-        font = pygame.font.Font(None, 20)
-        text = font.render("HEAVY", True, DARK_BROWN)
+        text = self._font_brand.render("HEAVY", True, DARK_BROWN)
         text_rect = text.get_rect(center=(bag_x, bag_y + self.height // 2))
         screen.blit(text, text_rect)

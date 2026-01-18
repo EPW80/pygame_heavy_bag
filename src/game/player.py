@@ -13,6 +13,25 @@ from ..utils.constants import (
     BLACK,
     PunchType,
     Difficulty,
+    PLAYER_WIDTH,
+    PLAYER_HEIGHT,
+    PLAYER_MOVE_SPEED,
+    PLAYER_MAX_POWER,
+    PLAYER_MAX_STAMINA,
+    PLAYER_STAMINA_REGEN_EASY,
+    PLAYER_STAMINA_REGEN_NORMAL,
+    PLAYER_STAMINA_REGEN_HARD,
+    PLAYER_STAMINA_REGEN_EXPERT,
+    PUNCH_COOLDOWN_NORMAL,
+    PUNCH_COOLDOWN_RAGE,
+    PUNCH_ANIMATION_FRAMES,
+    COMBO_TIMER_DURATION,
+    POWER_METER_GAIN,
+    ATTACK_PROPERTIES,
+    STAMINA_SPECIAL_MOVE,
+    RAGE_STAMINA_REDUCTION,
+    RAGE_DURATION,
+    MULTIPLIER_DURATION,
 )
 from .graphics import graphics_manager
 
@@ -23,21 +42,21 @@ class Player:
     def __init__(self, x: float, y: float, difficulty: Difficulty):
         self.x = x
         self.y = y
-        self.width = 50
-        self.height = 80
+        self.width = PLAYER_WIDTH
+        self.height = PLAYER_HEIGHT
         self.punch_cooldown = 0
         self.score = 0
         self.combo = 0
         self.max_combo = 0
         self.combo_timer = 0
         self.power_meter = 0
-        self.max_power = 100
-        self.stamina = 100
-        self.max_stamina = 100
+        self.max_power = PLAYER_MAX_POWER
+        self.stamina = PLAYER_MAX_STAMINA
+        self.max_stamina = PLAYER_MAX_STAMINA
         self.current_punch = None
         self.animation_frame = 0
         self.facing_right = True
-        self.move_speed = 5
+        self.move_speed = PLAYER_MOVE_SPEED
         self.total_punches = 0
         self.rage_mode = False
         self.rage_timer = 0
@@ -46,10 +65,10 @@ class Player:
 
         # Difficulty adjustments
         self.stamina_regen = {
-            Difficulty.EASY: 0.5,
-            Difficulty.NORMAL: 0.3,
-            Difficulty.HARD: 0.2,
-            Difficulty.EXPERT: 0.1,
+            Difficulty.EASY: PLAYER_STAMINA_REGEN_EASY,
+            Difficulty.NORMAL: PLAYER_STAMINA_REGEN_NORMAL,
+            Difficulty.HARD: PLAYER_STAMINA_REGEN_HARD,
+            Difficulty.EXPERT: PLAYER_STAMINA_REGEN_EXPERT,
         }[difficulty]
 
     def update(self) -> None:
@@ -72,7 +91,7 @@ class Player:
 
         # Build power meter
         if self.power_meter < self.max_power:
-            self.power_meter += 0.5
+            self.power_meter += POWER_METER_GAIN
 
         # Update animation
         if self.animation_frame > 0:
@@ -92,32 +111,32 @@ class Player:
 
     def punch(self, punch_type: PunchType) -> bool:
         """Attempt to throw a punch of the specified type."""
-        stamina_cost = {
-            PunchType.JAB: 5,
-            PunchType.CROSS: 8,
-            PunchType.HOOK: 10,
-            PunchType.UPPERCUT: 12,
-        }[punch_type]
+        # Get stamina cost from centralized attack properties
+        stamina_cost = ATTACK_PROPERTIES[punch_type].stamina_cost
 
         if self.rage_mode:
-            stamina_cost = stamina_cost // 2
+            stamina_cost = stamina_cost // RAGE_STAMINA_REDUCTION
 
         if self.punch_cooldown == 0 and self.stamina >= stamina_cost:
-            self.punch_cooldown = 15 if not self.rage_mode else 10
+            self.punch_cooldown = (
+                PUNCH_COOLDOWN_NORMAL if not self.rage_mode
+                else PUNCH_COOLDOWN_RAGE
+            )
             self.stamina -= stamina_cost
             self.current_punch = punch_type
-            self.animation_frame = 15
+            self.animation_frame = PUNCH_ANIMATION_FRAMES
             self.combo += 1
-            self.combo_timer = 60
+            self.combo_timer = COMBO_TIMER_DURATION
             self.total_punches += 1
             return True
         return False
 
     def special_move(self) -> bool:
         """Execute a special attack if power meter is full."""
-        if self.power_meter >= self.max_power and self.stamina >= 20:
+        if (self.power_meter >= self.max_power and
+                self.stamina >= STAMINA_SPECIAL_MOVE):
             self.power_meter = 0
-            self.stamina -= 20
+            self.stamina -= STAMINA_SPECIAL_MOVE
             self.animation_frame = 20
             return True
         return False
@@ -125,12 +144,12 @@ class Player:
     def activate_rage(self) -> None:
         """Activate rage mode for enhanced performance."""
         self.rage_mode = True
-        self.rage_timer = 300  # 5 seconds
+        self.rage_timer = RAGE_DURATION
 
     def activate_multiplier(self) -> None:
         """Activate score multiplier power-up."""
         self.multiplier = 2.0
-        self.multiplier_timer = 300
+        self.multiplier_timer = MULTIPLIER_DURATION
 
     def draw(self, screen: pygame.Surface) -> None:
         """Draw the player character with enhanced sprite graphics."""
@@ -145,6 +164,9 @@ class Player:
                 PunchType.CROSS: "cross",
                 PunchType.HOOK: "hook",
                 PunchType.UPPERCUT: "uppercut",
+                PunchType.FRONT_KICK: "front_kick",
+                PunchType.ROUNDHOUSE_KICK: "roundhouse_kick",
+                PunchType.LOW_KICK: "low_kick",
             }
             punch_name = punch_names.get(self.current_punch, 'idle')
             sprite_name = f"player_{punch_name}"
@@ -199,6 +221,8 @@ class Player:
             if self.animation_frame > 10 and self.current_punch in [
                 PunchType.CROSS,
                 PunchType.UPPERCUT,
+                PunchType.FRONT_KICK,
+                PunchType.ROUNDHOUSE_KICK,
             ]:
                 offset_x = math.sin(self.animation_frame * 0.5) * 2
                 offset_y = math.cos(self.animation_frame * 0.3) * 1
@@ -304,6 +328,9 @@ class Player:
                 PunchType.CROSS: (40, 0),
                 PunchType.HOOK: (30, -15),
                 PunchType.UPPERCUT: (25, -25),
+                PunchType.FRONT_KICK: (45, 5),
+                PunchType.ROUNDHOUSE_KICK: (35, -10),
+                PunchType.LOW_KICK: (30, 15),
             }
 
             if self.current_punch in punch_positions:
