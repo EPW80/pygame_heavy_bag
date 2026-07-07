@@ -58,337 +58,378 @@ class GraphicsManager:
         self._create_backgrounds()
 
     def _get_character_colors(self) -> dict:
-        """Get color palette for character sprites.
+        """Cel Classic palette (design handoff §Character)."""
+        from ..utils import theme
 
-        Returns:
-            Dictionary of color names to RGB tuples
-        """
         return {
-            "skin": (255, 220, 177),
-            "hair": (101, 67, 33),
-            "shorts": (50, 50, 150),
-            "tank": (200, 200, 200),
-            "glove": (220, 20, 20),
+            "skin": theme.CEL_SKIN,
+            "hair": theme.CEL_HAIR,
+            "tank": theme.CEL_TANK,
+            "tank_trim": theme.CEL_TANK_TRIM,
+            "shorts": theme.CEL_SHORTS,
+            "waistband": theme.CEL_WAISTBAND,
+            "glove": theme.CEL_GLOVE,
+            "glove_band": theme.CEL_GLOVE_BAND,
+            "shoe": theme.CEL_SHOE,
+            "sole": theme.CEL_SOLE,
+            "outline": theme.CEL_OUTLINE,
         }
 
-    def _draw_base_character(
-        self, surface: pygame.Surface, colors: dict
-    ) -> None:
-        """Draw base character body on the given surface.
+    # ------------------------------------------------------------------
+    # "Cel Classic" character (design handoff §Character).
+    #
+    # All coordinates are transcribed 1:1 from the SVG pose groups in
+    # design_handoff_heavy_bag_ui/UI Redesign.dc.html (#celPoseIdle ..
+    # #celPoseLowKick) on the 80-unit sprite grid, feet baseline y≈110.
+    # Shapes are drawn supersampled (CEL_SS×) then smoothscaled down.
+    # ------------------------------------------------------------------
 
-        Args:
-            surface: Pygame surface to draw on
-            colors: Dictionary of character colors
-        """
-        # Head with better proportions
-        pygame.draw.circle(surface, colors["skin"], (40, 25), 20)
-        pygame.draw.circle(surface, BLACK, (40, 25), 20, 2)
+    CEL_SS = 3  # supersample factor
 
-        # Hair
-        pygame.draw.arc(
-            surface, colors["hair"], (22, 7, 36, 30), 0, math.pi, 8
+    def _cel_capsule(self, surf, k, a, b, width, color):
+        """SVG thick round-cap stroke -> line + endpoint circles."""
+        r = max(1, round(width * k / 2))
+        ax, ay, bx, by = (
+            round(a[0] * k),
+            round(a[1] * k),
+            round(b[0] * k),
+            round(b[1] * k),
         )
+        pygame.draw.line(surf, color, (ax, ay), (bx, by), r * 2)
+        pygame.draw.circle(surf, color, (ax, ay), r)
+        pygame.draw.circle(surf, color, (bx, by), r)
 
-        # Eyes with more detail
-        pygame.draw.circle(surface, WHITE, (34, 22), 4)
-        pygame.draw.circle(surface, WHITE, (46, 22), 4)
-        pygame.draw.circle(surface, BLACK, (35, 22), 2)
-        pygame.draw.circle(surface, BLACK, (45, 22), 2)
-        pygame.draw.circle(surface, WHITE, (36, 21), 1)  # Eye highlights
-        pygame.draw.circle(surface, WHITE, (46, 21), 1)
+    def _cel_polyline(self, surf, k, pts, width, color):
+        r = max(1, round(width * k / 2))
+        scaled = [(round(x * k), round(y * k)) for x, y in pts]
+        for a, b in zip(scaled, scaled[1:]):
+            pygame.draw.line(surf, color, a, b, r * 2)
+        for p in scaled:
+            pygame.draw.circle(surf, color, p, r)
 
-        # Nose and mouth
-        pygame.draw.circle(surface, (200, 180, 150), (40, 28), 2)
-        pygame.draw.arc(surface, BLACK, (37, 31, 6, 4), 0, math.pi, 1)
+    def _cel_circle(self, surf, k, c, radius, fill, outline=None, ow=1.5):
+        center = (round(c[0] * k), round(c[1] * k))
+        pygame.draw.circle(surf, fill, center, round(radius * k))
+        if outline:
+            pygame.draw.circle(
+                surf, outline, center, round(radius * k), max(1, round(ow * k))
+            )
 
-        # Neck
-        pygame.draw.rect(surface, colors["skin"], (35, 44, 10, 8))
-
-        # Tank top (torso)
-        pygame.draw.rect(surface, colors["tank"], (25, 52, 30, 35))
-        pygame.draw.rect(surface, DARK_GRAY, (25, 52, 30, 35), 2)
-
-        # Arms with muscle definition
-        pygame.draw.ellipse(surface, colors["skin"], (52, 55, 12, 25))
-        pygame.draw.ellipse(surface, colors["skin"], (58, 75, 10, 20))
-        pygame.draw.ellipse(surface, colors["skin"], (16, 55, 12, 25))
-        pygame.draw.ellipse(surface, colors["skin"], (12, 75, 10, 20))
-
-        # Boxing gloves with straps
-        pygame.draw.circle(surface, colors["glove"], (63, 85), 8)
-        pygame.draw.circle(surface, DARK_RED, (63, 85), 8, 2)
-        pygame.draw.rect(surface, BLACK, (57, 82, 12, 3))
-
-        pygame.draw.circle(surface, colors["glove"], (17, 85), 8)
-        pygame.draw.circle(surface, DARK_RED, (17, 85), 8, 2)
-        pygame.draw.rect(surface, BLACK, (11, 82, 12, 3))
-
-        # Shorts
-        pygame.draw.rect(surface, colors["shorts"], (28, 87, 24, 20))
-        pygame.draw.rect(surface, DARK_GRAY, (28, 87, 24, 20), 2)
-
-        # Legs with muscle definition
-        pygame.draw.ellipse(surface, colors["skin"], (30, 105, 8, 18))
-        pygame.draw.ellipse(surface, colors["skin"], (42, 105, 8, 18))
-
-        # Boxing shoes
-        pygame.draw.ellipse(surface, BLACK, (26, 118, 16, 8))
-        pygame.draw.ellipse(surface, BLACK, (38, 118, 16, 8))
-        pygame.draw.ellipse(surface, WHITE, (28, 119, 12, 4))
-        pygame.draw.ellipse(surface, WHITE, (40, 119, 12, 4))
-
-        # Sweat droplets
-        pygame.draw.circle(surface, (150, 200, 255), (32, 15), 1)
-        pygame.draw.circle(surface, (150, 200, 255), (48, 18), 1)
-
-        # Muscle definition on arms
-        pygame.draw.arc(
-            surface, (200, 180, 150), (52, 60, 12, 15), 0, math.pi / 2, 1
+    def _cel_rect(self, surf, k, rect, fill, outline=None, ow=1.0, radius=0):
+        r = pygame.Rect(
+            round(rect[0] * k),
+            round(rect[1] * k),
+            round(rect[2] * k),
+            round(rect[3] * k),
         )
-        pygame.draw.arc(
-            surface,
-            (200, 180, 150),
-            (16, 60, 12, 15),
-            math.pi / 2,
-            math.pi,
-            1,
+        br = round(radius * k)
+        pygame.draw.rect(surf, fill, r, border_radius=br)
+        if outline:
+            pygame.draw.rect(surf, outline, r, max(1, round(ow * k)), border_radius=br)
+
+    def _cel_polygon(self, surf, k, pts, fill, outline=None, ow=1.5):
+        scaled = [(round(x * k), round(y * k)) for x, y in pts]
+        pygame.draw.polygon(surf, fill, scaled)
+        if outline:
+            w = max(1, round(ow * k))
+            pygame.draw.lines(surf, outline, True, scaled, w)
+            for p in scaled:
+                pygame.draw.circle(surf, outline, p, w // 2)
+
+    @staticmethod
+    def _qbezier(p0, p1, p2, n=12):
+        """Sample a quadratic bezier into a point list."""
+        pts = []
+        for i in range(n + 1):
+            t = i / n
+            u = 1 - t
+            pts.append(
+                (
+                    u * u * p0[0] + 2 * u * t * p1[0] + t * t * p2[0],
+                    u * u * p0[1] + 2 * u * t * p1[1] + t * t * p2[1],
+                )
+            )
+        return pts
+
+    def _cel_shadow(self, surf, k, cx, rx):
+        shadow = pygame.Surface((round(rx * 2 * k), round(7 * k)), pygame.SRCALPHA)
+        pygame.draw.ellipse(shadow, (0, 0, 0, 102), shadow.get_rect())
+        surf.blit(shadow, (round((cx - rx) * k), round((111 - 3.5) * k)))
+
+    def _cel_glove(self, surf, k, cx, cy, c):
+        self._cel_circle(surf, k, (cx, cy), 8.5, c["glove"], c["outline"], 1.8)
+        self._cel_circle(surf, k, (cx + 5, cy + 5.5), 3, c["glove"], c["outline"], 1.4)
+        band = self._qbezier((cx - 7, cy + 3), (cx, cy + 6.5), (cx + 7, cy + 3))
+        self._cel_polyline(surf, k, band, 2, c["glove_band"])
+
+    def _cel_head(self, surf, k, c):
+        self._cel_rect(surf, k, (36, 29, 8, 7), c["skin"], c["outline"], 1.2)
+        self._cel_circle(surf, k, (27.5, 21), 2.2, c["skin"], c["outline"], 1.2)
+        self._cel_circle(surf, k, (52.5, 21), 2.2, c["skin"], c["outline"], 1.2)
+        self._cel_circle(surf, k, (40, 20), 12, c["skin"], c["outline"], 1.8)
+        # Hair: elliptical arc (29,14) -> (51,14), rx 12.5 ry 10, bulging up
+        hair = []
+        theta0 = math.acos(11 / 12.5)
+        for i in range(13):
+            t = theta0 + (math.pi - 2 * theta0) * i / 12
+            hair.append((40 + 12.5 * math.cos(t), 18.75 - 10 * math.sin(t)))
+        self._cel_polyline(surf, k, hair, 7, c["hair"])
+        # Brows, eyes, mouth
+        self._cel_capsule(surf, k, (33, 16.5), (38, 18), 1.5, c["outline"])
+        self._cel_capsule(surf, k, (47, 16.5), (42, 18), 1.5, c["outline"])
+        self._cel_circle(surf, k, (36, 20.5), 1.3, c["outline"])
+        self._cel_circle(surf, k, (44, 20.5), 1.3, c["outline"])
+        self._cel_capsule(surf, k, (37, 25.5), (43, 25.5), 1.5, c["outline"])
+
+    def _cel_torso(self, surf, k, c):
+        self._cel_circle(surf, k, (28, 40), 5, c["skin"], c["outline"], 1.5)
+        self._cel_circle(surf, k, (52, 40), 5, c["skin"], c["outline"], 1.5)
+        tank = [(27, 37), (53, 37), (56, 62)]
+        tank += self._qbezier((56, 62), (40, 66), (24, 62))[1:]
+        self._cel_polygon(surf, k, tank, c["tank"], c["outline"], 1.5)
+        hem = self._qbezier((25, 60.5), (40, 64), (55, 60.5))
+        self._cel_polyline(surf, k, hem, 1.5, c["tank_trim"])
+
+    def _cel_shorts(self, surf, k, c):
+        pts = [(26, 62), (54, 62), (55, 78), (43, 78), (40, 72), (37, 78), (25, 78)]
+        self._cel_polygon(surf, k, pts, c["shorts"], c["outline"], 1.5)
+        self._cel_rect(surf, k, (26, 60, 28, 3.5), c["waistband"], c["outline"], 1.0)
+        self._cel_capsule(surf, k, (28, 65), (27, 76), 2, c["tank"])
+        self._cel_capsule(surf, k, (52, 65), (53, 76), 2, c["tank"])
+
+    def _cel_leg(self, surf, k, c, side):
+        if side == "L":
+            self._cel_capsule(surf, k, (33, 76), (32, 100), 7, c["skin"])
+            self._cel_rect(
+                surf, k, (24, 98, 15, 9), c["shoe"], c["outline"], 1.5, radius=3
+            )
+            self._cel_rect(
+                surf, k, (23, 105.5, 17, 3.5), c["sole"], c["outline"], 1.0, radius=1.5
+            )
+        else:
+            self._cel_capsule(surf, k, (47, 76), (48, 100), 7, c["skin"])
+            self._cel_rect(
+                surf, k, (41, 98, 15, 9), c["shoe"], c["outline"], 1.5, radius=3
+            )
+            self._cel_rect(
+                surf, k, (40, 105.5, 17, 3.5), c["sole"], c["outline"], 1.0, radius=1.5
+            )
+
+    def _cel_guard_arm(self, surf, k, c, side):
+        if side == "L":
+            self._cel_capsule(surf, k, (28, 41), (20, 53), 7, c["skin"])
+            self._cel_capsule(surf, k, (20, 53), (24, 38), 6, c["skin"])
+            self._cel_glove(surf, k, 25, 33, c)
+        else:
+            self._cel_capsule(surf, k, (52, 41), (60, 53), 7, c["skin"])
+            self._cel_capsule(surf, k, (60, 53), (56, 38), 6, c["skin"])
+            self._cel_glove(surf, k, 55, 33, c)
+
+    def _cel_kick_foot(self, surf, k, c, tx, ty, angle):
+        """Rotated shoe+sole group used by the three kick poses."""
+        pad = 14  # local units around the origin
+        foot = pygame.Surface((round(pad * 2 * k), round(pad * 2 * k)), pygame.SRCALPHA)
+        self._cel_rect(
+            foot, k, (pad - 8, pad - 4.5, 15, 9), c["shoe"], c["outline"], 1.5, radius=3
         )
+        self._cel_rect(
+            foot,
+            k,
+            (pad + 6, pad - 5.5, 3.5, 11),
+            c["sole"],
+            c["outline"],
+            1.0,
+            radius=1.5,
+        )
+        rotated = pygame.transform.rotate(foot, -angle)
+        surf.blit(rotated, rotated.get_rect(center=(round(tx * k), round(ty * k))))
 
-        # Tank top logo
-        font = pygame.font.Font(None, 16)
-        logo_text = font.render("FIGHT", True, DARK_GRAY)
-        surface.blit(logo_text, (30, 65))
+    def _cel_body(
+        self, surf, k, c, guards=("L", "R"), legs=("L", "R"), shadow_cx=42, shadow_rx=22
+    ):
+        """Shared paint order: shadow, legs, shorts, torso, head, guards."""
+        self._cel_shadow(surf, k, shadow_cx, shadow_rx)
+        for leg in legs:
+            self._cel_leg(surf, k, c, leg)
+        self._cel_shorts(surf, k, c)
+        self._cel_torso(surf, k, c)
+        self._cel_head(surf, k, c)
+        for guard in guards:
+            self._cel_guard_arm(surf, k, c, guard)
 
-        # Wrist wraps
-        pygame.draw.rect(surface, WHITE, (55, 78, 8, 4))
-        pygame.draw.rect(surface, WHITE, (17, 78, 8, 4))
-        pygame.draw.rect(surface, GRAY, (55, 78, 8, 4), 1)
-        pygame.draw.rect(surface, GRAY, (17, 78, 8, 4), 1)
+    WHITE_ACCENT = (255, 255, 255, 140)
+    YELLOW_ACCENT = (245, 217, 10, 255)
+    GOLD_TRAIL = (240, 195, 48, 217)
+
+    def _cel_render(self, size, draw_fn):
+        """Render a pose supersampled, then smoothscale to target size."""
+        k = self.CEL_SS
+        surf = pygame.Surface((size[0] * k, size[1] * k), pygame.SRCALPHA)
+        draw_fn(surf, k)
+        return pygame.transform.smoothscale(surf, size)
 
     def _create_player_sprites(self) -> None:
-        """Create procedural player sprites."""
-        colors = self._get_character_colors()
+        """Create the Cel Classic sprite set (idle + 7 attacks).
 
-        # Extract color values from dictionary
-        skin_color = colors["skin"]
-        hair_color = colors["hair"]
-        tank_color = colors["tank"]
-        glove_color = colors["glove"]
-        shorts_color = colors["shorts"]
+        Idle stays 80x120. Attack poses extend to grid x≈109, so they
+        render on 140x120 with the body shifted +30 to keep it aligned
+        with idle under Player.draw's centered blit.
+        """
+        c = self._get_character_colors()
 
-        # Create idle sprite
-        idle_surface = pygame.Surface((80, 120), pygame.SRCALPHA)
-        self._draw_base_character(idle_surface, colors)
+        def idle(surf, k):
+            self._cel_body(surf, k, c)
 
-        # Add shorts stripe details (unique to idle sprite)
-        pygame.draw.line(idle_surface, WHITE, (30, 92), (50, 92), 2)
-        pygame.draw.line(idle_surface, WHITE, (30, 98), (50, 98), 2)
+        self.sprites["player_idle"] = self._cel_render((80, 120), idle)
 
-        self.sprites["player_idle"] = idle_surface
+        dx = 30  # attack-surface body offset (140/2 - grid body center 40)
 
-        # Punching sprites for different punch types
-        for punch_type in [
-            "jab",
-            "cross",
-            "hook",
-            "uppercut",
-            "front_kick",
-            "roundhouse_kick",
-            "low_kick",
-        ]:
-            punch_surface = pygame.Surface((120, 120), pygame.SRCALPHA)
-
-            # Copy base body from idle sprite
-            base_body = idle_surface.copy()
-            punch_surface.blit(base_body, (20, 0))
-
-            # Define extended arm positions and body dynamics
-            if punch_type == "jab":
-                # Quick straight punch - left hand extends
-                # Redraw left arm in extended position
-                pygame.draw.ellipse(
-                    punch_surface, skin_color, (40, 75, 20, 8)
-                )  # Upper arm
-                pygame.draw.ellipse(
-                    punch_surface, skin_color, (55, 70, 25, 8)
-                )  # Forearm
-                pygame.draw.circle(punch_surface, glove_color, (82, 74), 9)
-                pygame.draw.circle(punch_surface, DARK_RED, (82, 74), 9, 2)
-                # Add motion lines
-                for i in range(3):
-                    pygame.draw.line(
-                        punch_surface,
-                        (255, 255, 255, 100),
-                        (75 - i * 5, 74),
-                        (80 - i * 5, 74),
-                        2,
-                    )
-
-            elif punch_type == "cross":
-                # Power straight punch - right hand extends with body rotation
-                # Slight body lean forward
-                pygame.draw.ellipse(
-                    punch_surface, skin_color, (15, 75, 20, 8)
-                )  # Upper arm
-                pygame.draw.ellipse(
-                    punch_surface, skin_color, (5, 70, 25, 8)
-                )  # Forearm
-                pygame.draw.circle(punch_surface, glove_color, (2, 74), 9)
-                pygame.draw.circle(punch_surface, DARK_RED, (2, 74), 9, 2)
-                # Add impact burst effect
-                for i in range(4):
-                    angle = i * 90
-                    end_x = 2 + math.cos(math.radians(angle)) * 15
-                    end_y = 74 + math.sin(math.radians(angle)) * 15
-                    pygame.draw.line(
-                        punch_surface, YELLOW, (2, 74), (end_x, end_y), 3
-                    )
-
-            elif punch_type == "hook":
-                # Wide circular punch - right hand swings around
-                pygame.draw.ellipse(
-                    punch_surface, skin_color, (25, 65, 8, 20)
-                )  # Upper arm
-                pygame.draw.ellipse(
-                    punch_surface, skin_color, (15, 58, 20, 8)
-                )  # Forearm
-                pygame.draw.circle(punch_surface, glove_color, (12, 62), 9)
-                pygame.draw.circle(punch_surface, DARK_RED, (12, 62), 9, 2)
-                # Add arc motion trail
-                pygame.draw.arc(
-                    punch_surface,
-                    (255, 255, 0, 150),
-                    (10, 55, 30, 20),
-                    0,
-                    math.pi / 2,
-                    3,
+        def attack(draw_fn):
+            def wrapped(surf, k):
+                shifted = pygame.Surface(
+                    (surf.get_width(), surf.get_height()), pygame.SRCALPHA
                 )
+                draw_fn(shifted, k)
+                surf.blit(shifted, (dx * k, 0))
 
-            elif punch_type == "uppercut":
-                # Upward punch from below - right hand comes up
-                pygame.draw.ellipse(
-                    punch_surface, skin_color, (30, 85, 8, 20)
-                )  # Upper arm
-                pygame.draw.ellipse(
-                    punch_surface, skin_color, (35, 65, 8, 25)
-                )  # Forearm
-                pygame.draw.circle(punch_surface, glove_color, (39, 55), 9)
-                pygame.draw.circle(punch_surface, DARK_RED, (39, 55), 9, 2)
-                # Add upward motion lines
-                for i in range(4):
-                    pygame.draw.line(
-                        punch_surface,
-                        (255, 255, 255, 120),
-                        (39, 60 + i * 5),
-                        (39, 65 + i * 5),
-                        2,
-                    )
+            return self._cel_render((140, 120), wrapped)
 
-            elif punch_type == "front_kick":
-                # Front kick - right leg extends forward
-                # Redraw right leg in extended position
-                pygame.draw.ellipse(
-                    punch_surface, skin_color, (50, 105, 25, 8)
-                )  # Thigh
-                pygame.draw.ellipse(
-                    punch_surface, skin_color, (70, 100, 20, 8)
-                )  # Shin
-                pygame.draw.ellipse(
-                    punch_surface, BLACK, (85, 98, 18, 10)
-                )  # Foot
-                pygame.draw.ellipse(
-                    punch_surface, WHITE, (87, 99, 14, 6)
-                )  # Shoe detail
-                # Add impact burst at foot
-                for i in range(4):
-                    angle = i * 90
-                    end_x = 94 + math.cos(math.radians(angle)) * 12
-                    end_y = 103 + math.sin(math.radians(angle)) * 12
-                    pygame.draw.line(
-                        punch_surface, YELLOW, (94, 103), (end_x, end_y), 2
-                    )
+        def jab(surf, k):
+            self._cel_body(surf, k, c, guards=("L",))
+            self._cel_capsule(surf, k, (52, 41), (78, 38), 6.5, c["skin"])
+            self._cel_glove(surf, k, 84.5, 37.5, c)
+            for a, b in (
+                ((62, 31.5), (70, 31)),
+                ((60, 38), (70, 38)),
+                ((62, 44.5), (70, 44)),
+            ):
+                self._cel_capsule(surf, k, a, b, 2, self.WHITE_ACCENT)
 
-            elif punch_type == "roundhouse_kick":
-                # Roundhouse kick - right leg swings in an arc
-                # Thigh
-                pygame.draw.ellipse(punch_surface, skin_color, (35, 95, 8, 25))
-                # Shin
-                pygame.draw.ellipse(punch_surface, skin_color, (15, 85, 25, 8))
-                # Foot
-                pygame.draw.ellipse(punch_surface, BLACK, (10, 83, 18, 10))
-                pygame.draw.ellipse(
-                    punch_surface, WHITE, (12, 84, 14, 6)
-                )  # Shoe detail
-                # Add arc motion trail
-                pygame.draw.arc(
-                    punch_surface,
-                    (255, 255, 0, 150),
-                    (10, 80, 40, 30),
-                    0,
-                    math.pi / 3,
-                    3,
-                )
+        def cross(surf, k):
+            self._cel_body(surf, k, c, guards=("R",))
+            self._cel_capsule(surf, k, (28, 41), (80, 38), 6.5, c["skin"])
+            self._cel_glove(surf, k, 86.5, 37.5, c)
+            for a, b in (
+                ((96, 31), (102, 26)),
+                ((98, 37.5), (106, 37.5)),
+                ((96, 44), (102, 49)),
+                ((90, 28), (93, 21)),
+            ):
+                self._cel_capsule(surf, k, a, b, 2.5, self.YELLOW_ACCENT)
 
-            elif punch_type == "low_kick":
-                # Low kick - targeting lower area
-                pygame.draw.ellipse(
-                    punch_surface, skin_color, (35, 110, 8, 20)
-                )  # Thigh
-                # Shin
-                pygame.draw.ellipse(
-                    punch_surface, skin_color, (20, 118, 20, 8)
-                )
-                # Foot
-                pygame.draw.ellipse(punch_surface, BLACK, (15, 116, 18, 10))
-                pygame.draw.ellipse(
-                    punch_surface, WHITE, (17, 117, 14, 6)
-                )  # Shoe detail
-                # Add sweeping motion lines
-                for i in range(3):
-                    pygame.draw.line(
-                        punch_surface,
-                        (255, 255, 255, 100),
-                        (20 - i * 3, 122),
-                        (25 - i * 3, 122),
-                        2,
-                    )
+        def hook(surf, k):
+            self._cel_body(surf, k, c, guards=("L",))
+            self._cel_capsule(surf, k, (52, 41), (69, 47), 7, c["skin"])
+            self._cel_capsule(surf, k, (69, 47), (77, 31), 6, c["skin"])
+            self._cel_glove(surf, k, 79, 26, c)
+            trail = self._qbezier((55, 14), (77, 13), (82, 25))
+            self._cel_polyline(surf, k, trail, 2.5, self.GOLD_TRAIL)
 
-            self.sprites[f"player_{punch_type}"] = punch_surface
+        def uppercut(surf, k):
+            self._cel_body(surf, k, c, guards=("L",))
+            self._cel_capsule(surf, k, (52, 41), (61, 55), 7, c["skin"])
+            self._cel_capsule(surf, k, (61, 55), (59.5, 29), 6, c["skin"])
+            self._cel_glove(surf, k, 59, 21, c)
+            for a, b in (
+                ((50, 36), (50, 42)),
+                ((68, 33), (68, 40)),
+                ((59, 44), (59, 51)),
+            ):
+                self._cel_capsule(surf, k, a, b, 2, self.WHITE_ACCENT)
+
+        def front_kick(surf, k):
+            self._cel_shadow(surf, k, 48, 26)
+            self._cel_leg(surf, k, c, "L")
+            self._cel_capsule(surf, k, (46, 77), (64, 71), 7, c["skin"])
+            self._cel_capsule(surf, k, (64, 71), (82, 66.5), 6, c["skin"])
+            self._cel_kick_foot(surf, k, c, 87, 66, 8)
+            self._cel_shorts(surf, k, c)
+            self._cel_torso(surf, k, c)
+            self._cel_head(surf, k, c)
+            self._cel_guard_arm(surf, k, c, "L")
+            self._cel_guard_arm(surf, k, c, "R")
+            for a, b in (
+                ((100, 58), (104, 53)),
+                ((102, 65), (109, 65)),
+                ((100, 72), (104, 77)),
+            ):
+                self._cel_capsule(surf, k, a, b, 2.5, self.YELLOW_ACCENT)
+
+        def roundhouse_kick(surf, k):
+            self._cel_shadow(surf, k, 46, 24)
+            self._cel_leg(surf, k, c, "L")
+            self._cel_capsule(surf, k, (46, 77), (63, 61), 7, c["skin"])
+            self._cel_capsule(surf, k, (63, 61), (79, 50), 6, c["skin"])
+            self._cel_kick_foot(surf, k, c, 84, 46.5, -30)
+            trail = self._qbezier((60, 88), (92, 79), (84, 51))
+            self._cel_polyline(surf, k, trail, 2.5, self.GOLD_TRAIL)
+            self._cel_shorts(surf, k, c)
+            self._cel_torso(surf, k, c)
+            self._cel_head(surf, k, c)
+            self._cel_guard_arm(surf, k, c, "L")
+            self._cel_guard_arm(surf, k, c, "R")
+
+        def low_kick(surf, k):
+            self._cel_shadow(surf, k, 48, 26)
+            self._cel_leg(surf, k, c, "L")
+            self._cel_capsule(surf, k, (46, 77), (64, 86), 7, c["skin"])
+            self._cel_capsule(surf, k, (64, 86), (82, 92), 6, c["skin"])
+            self._cel_kick_foot(surf, k, c, 87, 92.5, 10)
+            for a, b in (((62, 101), (70, 101)), ((66, 106), (74, 106))):
+                self._cel_capsule(surf, k, a, b, 2, self.WHITE_ACCENT)
+            self._cel_shorts(surf, k, c)
+            self._cel_torso(surf, k, c)
+            self._cel_head(surf, k, c)
+            self._cel_guard_arm(surf, k, c, "L")
+            self._cel_guard_arm(surf, k, c, "R")
+
+        poses = {
+            "jab": jab,
+            "cross": cross,
+            "hook": hook,
+            "uppercut": uppercut,
+            "front_kick": front_kick,
+            "roundhouse_kick": roundhouse_kick,
+            "low_kick": low_kick,
+        }
+        for name, fn in poses.items():
+            self.sprites[f"player_{name}"] = attack(fn)
 
     def _create_bag_textures(self) -> None:
-        """Create enhanced heavy bag textures."""
+        """Leather heavy bag per the design handoff (§Assets)."""
+        from ..utils import theme
+        from ..utils.fonts import get_font
+        from . import ui
+
         bag_surface = pygame.Surface((80, 180), pygame.SRCALPHA)
 
-        # Main bag body with gradient effect
-        for y in range(180):
-            intensity = int(139 + (y / 180) * 30)
-            color = (
-                intensity,
-                max(0, 69 - (y / 180) * 20),
-                max(0, 19 - (y / 180) * 10),
-            )
-            pygame.draw.line(bag_surface, color, (10, y), (70, y))
+        # Rounded-rect leather body with vertical gradient
+        body = pygame.Rect(8, 0, 64, 180)
+        gradient = pygame.Surface(body.size)
+        ui.draw_vertical_gradient(
+            gradient, gradient.get_rect(), theme.BAG_LEATHER_TOP, theme.BAG_LEATHER_BOTTOM
+        )
+        mask = pygame.Surface(body.size, pygame.SRCALPHA)
+        pygame.draw.rect(mask, (255, 255, 255, 255), mask.get_rect(), border_radius=18)
+        gradient = gradient.convert_alpha()
+        gradient.blit(mask, (0, 0), special_flags=pygame.BLEND_RGBA_MIN)
+        bag_surface.blit(gradient, body.topleft)
 
-        # Add leather texture lines
-        for i in range(0, 180, 20):
-            pygame.draw.line(bag_surface, DARK_BROWN, (15, i), (65, i), 2)
+        # Vertical seam lines
+        for x in (24, 40, 56):
+            pygame.draw.line(bag_surface, (30, 13, 6), (x, 8), (x, 172), 1)
+        # Top and bottom stitch bands
+        pygame.draw.line(bag_surface, (30, 13, 6), (10, 14), (70, 14), 2)
+        pygame.draw.line(bag_surface, (30, 13, 6), (10, 166), (70, 166), 2)
 
-        # Stitching details
-        for i in range(3):
-            y_offset = 45 + i * 45
-            pygame.draw.arc(
-                bag_surface, BLACK, (15, y_offset, 50, 20), 0, math.pi, 3
-            )
+        # Left highlight
+        highlight = pygame.Surface((14, 130), pygame.SRCALPHA)
+        pygame.draw.ellipse(highlight, (255, 255, 255, 28), highlight.get_rect())
+        bag_surface.blit(highlight, (12, 20))
 
-        # Brand emblem
-        font = pygame.font.Font(None, 24)
-        text = font.render("HEAVY", True, GOLD)
-        bag_surface.blit(text, (20, 85))
-
-        # Highlight effects
-        highlight = pygame.Surface((30, 60), pygame.SRCALPHA)
-        pygame.draw.ellipse(highlight, (255, 255, 255, 60), (0, 0, 30, 60))
-        bag_surface.blit(highlight, (20, 30))
+        # Gold "HEAVY" branding
+        brand = get_font("bebas", 34).render("HEAVY", True, theme.GOLD)
+        bag_surface.blit(brand, brand.get_rect(center=(40, 90)))
 
         self.sprites["heavy_bag"] = bag_surface
 
@@ -532,9 +573,7 @@ class GraphicsManager:
         self._ensure_initialized()
         return self.backgrounds.get(bg_name)
 
-    def get_particle_texture(
-        self, texture_name: str
-    ) -> Optional[pygame.Surface]:
+    def get_particle_texture(self, texture_name: str) -> Optional[pygame.Surface]:
         """Get a particle texture by name."""
         self._ensure_initialized()
         return self.particles.get(texture_name)
@@ -550,9 +589,7 @@ class GraphicsManager:
         for i in range(5):
             radius = size - i * (size // 6)
             if radius > 0:
-                pygame.draw.circle(
-                    surface, color, (size, size), radius, max(1, 3 - i)
-                )
+                pygame.draw.circle(surface, color, (size, size), radius, max(1, 3 - i))
 
         # Add radiating lines
         for angle in range(0, 360, 30):

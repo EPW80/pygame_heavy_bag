@@ -121,12 +121,11 @@ class GameManager:
 
     def start_game(self) -> None:
         """Initialize a new game session."""
+        # Spawn right of the HUD control card so the character is visible
         self.player = Player(
-            SCREEN_WIDTH // 4, SCREEN_HEIGHT - 150, self.settings.difficulty
+            SCREEN_WIDTH * 2 // 5, SCREEN_HEIGHT - 150, self.settings.difficulty
         )
-        self.heavy_bag = HeavyBag(
-            SCREEN_WIDTH * 3 // 4, 100, self.settings.difficulty
-        )
+        self.heavy_bag = HeavyBag(SCREEN_WIDTH * 3 // 4, 100, self.settings.difficulty)
         self.hit_effects.clear()
         self.floating_texts.clear()
         self.power_ups.clear()
@@ -215,10 +214,7 @@ class GameManager:
                 self.player.x = min(SCREEN_WIDTH - 50, self.player.x)
 
     def _check_hit_detection(
-        self,
-        punch_type: PunchType = None,
-        reach: float = None,
-        tolerance: int = 20
+        self, punch_type: PunchType = None, reach: float = None, tolerance: int = 20
     ) -> tuple[bool, float, float]:
         """Check if punch hits the bag.
 
@@ -314,9 +310,7 @@ class GameManager:
 
         text_color = GOLD if self.player.combo > 5 else YELLOW
         self.floating_texts.append(
-            FloatingText(
-                bag_x, hit_height, f"+{points}{combo_bonus}", text_color
-            )
+            FloatingText(bag_x, hit_height, f"+{points}{combo_bonus}", text_color)
         )
 
         # Perfect hit bonus
@@ -346,9 +340,7 @@ class GameManager:
 
         # Random power-up spawn (5% chance)
         if random.random() < 0.05:
-            power_type = random.choice(
-                ["stamina", "power", "multiplier", "rage"]
-            )
+            power_type = random.choice(["stamina", "power", "multiplier", "rage"])
             self.power_ups.append(
                 PowerUp(
                     random.randint(100, SCREEN_WIDTH - 100),
@@ -380,27 +372,19 @@ class GameManager:
     def special_attack(self) -> None:
         """Execute special attack if conditions are met."""
         if self.player.special_move():
-            hit_landed, bag_x, bag_y = self._check_hit_detection(
-                reach=50, tolerance=30
-            )
+            hit_landed, bag_x, bag_y = self._check_hit_detection(reach=50, tolerance=30)
 
             if hit_landed:
                 force = 8.0 * self.player.multiplier
-                self.heavy_bag.hit(
-                    force, PunchType.CROSS, self.player.rage_mode
-                )
+                self.heavy_bag.hit(force, PunchType.CROSS, self.player.rage_mode)
                 self.player.score += int(100 * self.player.multiplier)
 
                 hit_height = bag_y + self.heavy_bag.height // 3
                 for _ in range(20):
-                    self.create_hit_effect(
-                        bag_x, hit_height, force, special=True
-                    )
+                    self.create_hit_effect(bag_x, hit_height, force, special=True)
 
                 self.floating_texts.append(
-                    FloatingText(
-                        bag_x, hit_height, "SPECIAL ATTACK!", GOLD, 48, 90
-                    )
+                    FloatingText(bag_x, hit_height, "SPECIAL ATTACK!", GOLD, 48, 90)
                 )
 
                 self.screen_shake = 20
@@ -416,13 +400,8 @@ class GameManager:
             particle_count = int(power * 5) if not special else 30
             for _ in range(particle_count):
                 angle = random.uniform(0, math.pi * 2)
-                speed = (
-                    random.uniform(2, 8) if not special
-                    else random.uniform(4, 12)
-                )
-                color = (
-                    random.choice([YELLOW, RED, WHITE]) if special else WHITE
-                )
+                speed = random.uniform(2, 8) if not special else random.uniform(4, 12)
+                color = random.choice([YELLOW, RED, WHITE]) if special else WHITE
 
                 if self.player.rage_mode:
                     color = random.choice([RED, ORANGE, YELLOW])
@@ -439,9 +418,7 @@ class GameManager:
 
     def check_power_up_collision(self) -> None:
         """Check for power-up collection by player."""
-        player_rect = pygame.Rect(
-            self.player.x - 25, self.player.y - 40, 50, 80
-        )
+        player_rect = pygame.Rect(self.player.x - 25, self.player.y - 40, 50, 80)
 
         for power_up in self.power_ups[:]:
             power_rect = pygame.Rect(power_up.x - 15, power_up.y - 15, 30, 30)
@@ -465,9 +442,7 @@ class GameManager:
                     text = "POWER UP!"
 
                 self.floating_texts.append(
-                    FloatingText(
-                        self.player.x, self.player.y - 50, text, GREEN, 36, 60
-                    )
+                    FloatingText(self.player.x, self.player.y - 50, text, GREEN, 36, 60)
                 )
                 self.power_ups.remove(power_up)
 
@@ -615,7 +590,12 @@ class GameManager:
         # --- Top-left: score block ---
         x, y = margin, s(56)
         ui.draw_tracked_label(
-            self.screen, (x, y), "SCORE", label_font, theme.TEXT_DIM, s(4),
+            self.screen,
+            (x, y),
+            "SCORE",
+            label_font,
+            theme.TEXT_DIM,
+            s(4),
             alpha=theme.TEXT_DIM_ALPHA,
         )
         score_surf = get_font("bebas", 96).render(
@@ -635,7 +615,9 @@ class GameManager:
         bar_rect = pygame.Rect(0, 0, s(360), s(4))
         bar_rect.midtop = (cx, s(40) + timer_surf.get_height() + s(10))
         ui.draw_mini_bar(self.screen, bar_rect, progress, theme.GOLD)
-        round_label = f"TRAINING ROUND — {ROUND_TIME_SECONDS // 60}:{ROUND_TIME_SECONDS % 60:02d}"
+        round_label = (
+            f"TRAINING ROUND — {ROUND_TIME_SECONDS // 60}:{ROUND_TIME_SECONDS % 60:02d}"
+        )
         lbl_w = ui.tracked_label_width(round_label, label_font, s(3))
         ui.draw_tracked_label(
             self.screen,
@@ -655,21 +637,33 @@ class GameManager:
         pad = s(24)
         value_font = get_font("bebas", 28)
         meters = [
-            ("STAMINA", self.player.stamina, self.player.max_stamina, theme.STAMINA_GREEN),
+            (
+                "STAMINA",
+                self.player.stamina,
+                self.player.max_stamina,
+                theme.STAMINA_GREEN,
+            ),
             (
                 "POWER",
                 self.player.power_meter,
                 self.player.max_power,
-                theme.GOLD
-                if self.player.power_meter >= self.player.max_power
-                else theme.POWER_BLUE,
+                (
+                    theme.GOLD
+                    if self.player.power_meter >= self.player.max_power
+                    else theme.POWER_BLUE
+                ),
             ),
         ]
         for i, (name, value, maximum, color) in enumerate(meters):
             row_y = panel.top + pad + i * s(52)
             ui.draw_tracked_label(
-                self.screen, (panel.left + pad, row_y), name, label_font,
-                theme.TEXT_DIM, s(3), alpha=theme.TEXT_DIM_ALPHA,
+                self.screen,
+                (panel.left + pad, row_y),
+                name,
+                label_font,
+                theme.TEXT_DIM,
+                s(3),
+                alpha=theme.TEXT_DIM_ALPHA,
             )
             value_surf = value_font.render(str(int(value)), True, color)
             self.screen.blit(
@@ -677,7 +671,12 @@ class GameManager:
             )
             ui.draw_segmented_bar(
                 self.screen,
-                pygame.Rect(panel.left + pad, row_y + s(24), panel.width - 2 * pad - s(64), s(10)),
+                pygame.Rect(
+                    panel.left + pad,
+                    row_y + s(24),
+                    panel.width - 2 * pad - s(64),
+                    s(10),
+                ),
                 value / maximum,
                 color,
             )
@@ -687,9 +686,17 @@ class GameManager:
             (panel.left + pad, panel.bottom - pad - s(14)),
             caption,
             get_font("barlow-medium", 13),
-            theme.GOLD if self.player.power_meter >= self.player.max_power else theme.TEXT_DIM,
+            (
+                theme.GOLD
+                if self.player.power_meter >= self.player.max_power
+                else theme.TEXT_DIM
+            ),
             s(2),
-            alpha=255 if self.player.power_meter >= self.player.max_power else theme.TEXT_DIM_ALPHA,
+            alpha=(
+                255
+                if self.player.power_meter >= self.player.max_power
+                else theme.TEXT_DIM_ALPHA
+            ),
         )
 
         # --- Center: combo ---
@@ -714,7 +721,9 @@ class GameManager:
         damage_ratio = self.heavy_bag.damage / BAG_MAX_DAMAGE if self.heavy_bag else 0
         bar = pygame.Rect(chip.left + s(78), chip.centery - s(3), s(120), s(6))
         ui.draw_mini_bar(self.screen, bar, damage_ratio, theme.IMPACT_YELLOW)
-        pct = get_font("bebas", 24).render(f"{int(damage_ratio * 100)}%", True, theme.TEXT_PRIMARY)
+        pct = get_font("bebas", 24).render(
+            f"{int(damage_ratio * 100)}%", True, theme.TEXT_PRIMARY
+        )
         self.screen.blit(pct, (bar.right + s(16), chip.centery - pct.get_height() // 2))
 
     def _draw_control_card(self) -> None:
@@ -730,38 +739,50 @@ class GameManager:
         cost_font = get_font("barlow-bold", 15)
 
         columns = [
-            ("PUNCHES", [
-                ("Z", "Jab", PunchType.JAB),
-                ("X", "Cross", PunchType.CROSS),
-                ("C", "Hook", PunchType.HOOK),
-                ("V", "Uppercut", PunchType.UPPERCUT),
-            ]),
-            ("KICKS", [
-                ("Q", "Front Kick", PunchType.FRONT_KICK),
-                ("W", "Roundhouse", PunchType.ROUNDHOUSE_KICK),
-                ("E", "Low Kick", PunchType.LOW_KICK),
-            ]),
+            (
+                "PUNCHES",
+                [
+                    ("Z", "Jab", PunchType.JAB),
+                    ("X", "Cross", PunchType.CROSS),
+                    ("C", "Hook", PunchType.HOOK),
+                    ("V", "Uppercut", PunchType.UPPERCUT),
+                ],
+            ),
+            (
+                "KICKS",
+                [
+                    ("Q", "Front Kick", PunchType.FRONT_KICK),
+                    ("W", "Roundhouse", PunchType.ROUNDHOUSE_KICK),
+                    ("E", "Low Kick", PunchType.LOW_KICK),
+                ],
+            ),
         ]
         col_w = (panel.width - 2 * pad) // 2
         for c, (title, moves) in enumerate(columns):
             cx0 = panel.left + pad + c * col_w
             ui.draw_tracked_label(
-                self.screen, (cx0, panel.top + s(18)), title, header_font,
-                theme.TEXT_DIM, s(3), alpha=theme.TEXT_DIM_ALPHA,
+                self.screen,
+                (cx0, panel.top + s(18)),
+                title,
+                header_font,
+                theme.TEXT_DIM,
+                s(3),
+                alpha=theme.TEXT_DIM_ALPHA,
             )
             for r, (key, name, punch) in enumerate(moves):
                 row_y = panel.top + s(48) + r * s(42)
                 cap_size = s(34)
                 ui.draw_keycap(
-                    self.screen, (cx0 + cap_size // 2, row_y + cap_size // 2), key, size=cap_size
+                    self.screen,
+                    (cx0 + cap_size // 2, row_y + cap_size // 2),
+                    key,
+                    size=cap_size,
                 )
                 name_surf = name_font.render(name, True, theme.TEXT_PRIMARY)
                 self.screen.blit(name_surf, (cx0 + cap_size + s(14), row_y + s(4)))
                 cost = ATTACK_PROPERTIES[punch].stamina_cost
                 cost_surf = cost_font.render(f"−{cost}", True, theme.STAMINA_GREEN)
-                self.screen.blit(
-                    cost_surf, (cx0 + col_w - s(50), row_y + s(6))
-                )
+                self.screen.blit(cost_surf, (cx0 + col_w - s(50), row_y + s(6)))
         # Gold SPACE special row along the bottom (below the longer column)
         row_y = panel.top + s(48) + 4 * s(42) + s(10)
         cap_rect = ui.draw_keycap(
@@ -789,7 +810,10 @@ class GameManager:
         )
         self.screen.blit(
             best_surf,
-            (margin + score_surf.get_width() + s(20), s(48) + score_surf.get_height() - best_surf.get_height() - s(6)),
+            (
+                margin + score_surf.get_width() + s(20),
+                s(48) + score_surf.get_height() - best_surf.get_height() - s(6),
+            ),
         )
 
         # Timer + slim progress, top-center
@@ -813,9 +837,11 @@ class GameManager:
                 "PWR",
                 self.player.power_meter,
                 self.player.max_power,
-                theme.GOLD
-                if self.player.power_meter >= self.player.max_power
-                else theme.POWER_BLUE,
+                (
+                    theme.GOLD
+                    if self.player.power_meter >= self.player.max_power
+                    else theme.POWER_BLUE
+                ),
             ),
         ]
         for i, (name, value, maximum, color) in enumerate(meters):
@@ -915,8 +941,13 @@ class GameManager:
         session_label = f"TRAINING SESSION — {ROUND_TIME_SECONDS // 60}:{ROUND_TIME_SECONDS % 60:02d}"
         lbl_w = ui.tracked_label_width(session_label, label_font, s(4))
         ui.draw_tracked_label(
-            self.screen, (cx - lbl_w // 2, s(70)), session_label, label_font,
-            theme.TEXT_DIM, s(4), alpha=theme.TEXT_DIM_ALPHA,
+            self.screen,
+            (cx - lbl_w // 2, s(70)),
+            session_label,
+            label_font,
+            theme.TEXT_DIM,
+            s(4),
+            alpha=theme.TEXT_DIM_ALPHA,
         )
 
         title = get_font("bebas", 130).render("ROUND COMPLETE", True, theme.GOLD)
@@ -925,13 +956,20 @@ class GameManager:
         final_label_y = s(100) + title.get_height() + s(16)
         lbl_w = ui.tracked_label_width("FINAL SCORE", label_font, s(4))
         ui.draw_tracked_label(
-            self.screen, (cx - lbl_w // 2, final_label_y), "FINAL SCORE",
-            label_font, theme.TEXT_DIM, s(4), alpha=theme.TEXT_DIM_ALPHA,
+            self.screen,
+            (cx - lbl_w // 2, final_label_y),
+            "FINAL SCORE",
+            label_font,
+            theme.TEXT_DIM,
+            s(4),
+            alpha=theme.TEXT_DIM_ALPHA,
         )
         score_surf = get_font("bebas", 250).render(
             f"{self.player.score:,}", True, theme.TEXT_PRIMARY
         )
-        self.screen.blit(score_surf, score_surf.get_rect(midtop=(cx, final_label_y + s(20))))
+        self.screen.blit(
+            score_surf, score_surf.get_rect(midtop=(cx, final_label_y + s(20)))
+        )
 
         # Three stat cards
         cards = [
@@ -945,7 +983,9 @@ class GameManager:
         value_font = get_font("bebas", 72)
         card_label_font = get_font("barlow-semibold", 15)
         for i, (label, value, color) in enumerate(cards):
-            rect = pygame.Rect(cx - total_w // 2 + i * (card_w + gap), cards_y, card_w, card_h)
+            rect = pygame.Rect(
+                cx - total_w // 2 + i * (card_w + gap), cards_y, card_w, card_h
+            )
             ui.draw_card(self.screen, rect)
             lbl_w = ui.tracked_label_width(label, card_label_font, s(3))
             ui.draw_tracked_label(
@@ -985,7 +1025,9 @@ class GameManager:
             cap_rect = ui.draw_keycap(self.screen, (x, hint_y), cap, size=s(38))
             text = hint_font.render(label, True, theme.TEXT_DIM)
             text.set_alpha(theme.TEXT_DIM_ALPHA)
-            self.screen.blit(text, (cap_rect.right + s(12), hint_y - text.get_height() // 2))
+            self.screen.blit(
+                text, (cap_rect.right + s(12), hint_y - text.get_height() // 2)
+            )
             x = cap_rect.right + s(12) + text.get_width() + s(60)
 
     def draw(self) -> None:
@@ -1009,12 +1051,8 @@ class GameManager:
             shake_offset_x = 0
             shake_offset_y = 0
             if self.screen_shake > 0:
-                shake_offset_x = random.randint(
-                    -self.screen_shake, self.screen_shake
-                )
-                shake_offset_y = random.randint(
-                    -self.screen_shake, self.screen_shake
-                )
+                shake_offset_x = random.randint(-self.screen_shake, self.screen_shake)
+                shake_offset_y = random.randint(-self.screen_shake, self.screen_shake)
 
             # Create temporary surface
             temp_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -1103,11 +1141,7 @@ class GameManager:
             # Mat pattern
             for i in range(0, SCREEN_WIDTH, 50):
                 pygame.draw.line(
-                    surface,
-                    GRAY,
-                    (i, SCREEN_HEIGHT - 40),
-                    (i, SCREEN_HEIGHT),
-                    1
+                    surface, GRAY, (i, SCREEN_HEIGHT - 40), (i, SCREEN_HEIGHT), 1
                 )
 
     def _draw_enhanced_range_indicator(self, surface: pygame.Surface) -> None:
@@ -1136,9 +1170,7 @@ class GameManager:
                 (s(360), s(180)), theme.STAMINA_GREEN, 0, 80
             )
         # Opacity pulse 0.55 -> 1.0 at ~1.6s period
-        pulse = 0.775 + 0.225 * math.sin(
-            pygame.time.get_ticks() * (2 * math.pi / 1600)
-        )
+        pulse = 0.775 + 0.225 * math.sin(pygame.time.get_ticks() * (2 * math.pi / 1600))
         glow = self._range_glow.copy()
         glow.set_alpha(int(255 * pulse))
         glow_rect = glow.get_rect(midbottom=(int(bag_x), floor_y))

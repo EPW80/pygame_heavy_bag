@@ -85,9 +85,7 @@ class Player:
 
         # Regenerate stamina
         if self.stamina < self.max_stamina:
-            self.stamina = min(
-                self.max_stamina, self.stamina + self.stamina_regen
-            )
+            self.stamina = min(self.max_stamina, self.stamina + self.stamina_regen)
 
         # Build power meter
         if self.power_meter < self.max_power:
@@ -119,8 +117,7 @@ class Player:
 
         if self.punch_cooldown == 0 and self.stamina >= stamina_cost:
             self.punch_cooldown = (
-                PUNCH_COOLDOWN_NORMAL if not self.rage_mode
-                else PUNCH_COOLDOWN_RAGE
+                PUNCH_COOLDOWN_NORMAL if not self.rage_mode else PUNCH_COOLDOWN_RAGE
             )
             self.stamina -= stamina_cost
             self.current_punch = punch_type
@@ -133,8 +130,7 @@ class Player:
 
     def special_move(self) -> bool:
         """Execute a special attack if power meter is full."""
-        if (self.power_meter >= self.max_power and
-                self.stamina >= STAMINA_SPECIAL_MOVE):
+        if self.power_meter >= self.max_power and self.stamina >= STAMINA_SPECIAL_MOVE:
             self.power_meter = 0
             self.stamina -= STAMINA_SPECIAL_MOVE
             self.animation_frame = 20
@@ -168,7 +164,7 @@ class Player:
                 PunchType.ROUNDHOUSE_KICK: "roundhouse_kick",
                 PunchType.LOW_KICK: "low_kick",
             }
-            punch_name = punch_names.get(self.current_punch, 'idle')
+            punch_name = punch_names.get(self.current_punch, "idle")
             sprite_name = f"player_{punch_name}"
 
         # Get sprite from graphics manager
@@ -183,41 +179,36 @@ class Player:
             # Apply rage mode effects
             if self.rage_mode:
                 # Create rage aura effect
-                aura_size = (
-                    sprite.get_width() + 20,
-                    sprite.get_height() + 20
-                )
+                aura_size = (sprite.get_width() + 20, sprite.get_height() + 20)
                 aura_surface = pygame.Surface(aura_size, pygame.SRCALPHA)
                 for i in range(3):
                     pygame.draw.circle(
                         aura_surface,
                         RED,
-                        (aura_surface.get_width() // 2,
-                         aura_surface.get_height() // 2),
+                        (aura_surface.get_width() // 2, aura_surface.get_height() // 2),
                         40 + i * 10,
                         2,
                     )
 
                 # Blit aura first
-                aura_rect = aura_surface.get_rect(
-                    center=(head_x, head_y + 20)
-                )
+                aura_rect = aura_surface.get_rect(center=(head_x, head_y + 20))
                 screen.blit(aura_surface, aura_rect)
 
                 # Add red tint to sprite
                 rage_sprite = display_sprite.copy()
-                rage_overlay = pygame.Surface(
-                    rage_sprite.get_size(), pygame.SRCALPHA
-                )
+                rage_overlay = pygame.Surface(rage_sprite.get_size(), pygame.SRCALPHA)
                 rage_overlay.fill((*RED, 80))
-                rage_sprite.blit(
-                    rage_overlay, (0, 0), special_flags=pygame.BLEND_ADD
-                )
+                rage_sprite.blit(rage_overlay, (0, 0), special_flags=pygame.BLEND_ADD)
                 display_sprite = rage_sprite
 
             # Add screen shake effect during powerful attacks
             offset_x = 0
             offset_y = 0
+            if sprite_name == "player_idle":
+                # Breathing bob: ±2px at ~1 Hz (design handoff §Interactions)
+                offset_y = 2 * math.sin(
+                    pygame.time.get_ticks() * (2 * math.pi / 1000)
+                )
             if self.animation_frame > 10 and self.current_punch in [
                 PunchType.CROSS,
                 PunchType.UPPERCUT,
@@ -239,9 +230,7 @@ class Player:
             # Fallback to original drawing method if sprite not found
             self._draw_fallback(screen, head_x, head_y)
 
-    def _draw_special_effects(
-        self, screen: pygame.Surface, x: float, y: float
-    ) -> None:
+    def _draw_special_effects(self, screen: pygame.Surface, x: float, y: float) -> None:
         """Draw additional visual effects on the player."""
         # Power meter charging effect
         if self.power_meter >= self.max_power:
@@ -255,13 +244,9 @@ class Player:
         # Multiplier effect
         if self.multiplier > 1:
             mult_color = GOLD if self.multiplier >= 2 else YELLOW
-            pygame.draw.circle(
-                screen, mult_color, (int(x), int(y - 40)), 15, 3
-            )
+            pygame.draw.circle(screen, mult_color, (int(x), int(y - 40)), 15, 3)
             font = pygame.font.Font(None, 24)
-            mult_text = font.render(
-                f"{self.multiplier:.1f}x", True, mult_color
-            )
+            mult_text = font.render(f"{self.multiplier:.1f}x", True, mult_color)
             mult_rect = mult_text.get_rect(center=(x, y - 40))
             screen.blit(mult_text, mult_rect)
 
@@ -291,8 +276,7 @@ class Player:
             for i in range(3):
                 alpha = 100 - i * 30
                 pygame.draw.circle(
-                    screen, (255, 0, 0, alpha), (head_x, head_y + 20),
-                    40 + i * 10, 2
+                    screen, (255, 0, 0, alpha), (head_x, head_y + 20), 40 + i * 10, 2
                 )
 
         # Head
@@ -303,12 +287,8 @@ class Player:
         # Eyes
         eye_offset = 5 if self.facing_right else -5
         eye_color = RED if self.rage_mode else BLACK
-        pygame.draw.circle(
-            screen, eye_color, (head_x + eye_offset, head_y - 3), 2
-        )
-        pygame.draw.circle(
-            screen, eye_color, (head_x + eye_offset, head_y + 3), 2
-        )
+        pygame.draw.circle(screen, eye_color, (head_x + eye_offset, head_y - 3), 2)
+        pygame.draw.circle(screen, eye_color, (head_x + eye_offset, head_y + 3), 2)
 
         # Body
         body_top = head_y + 18
@@ -344,10 +324,7 @@ class Player:
                 )
                 glove_color = GOLD if self.rage_mode else RED
                 pygame.draw.circle(
-                    screen,
-                    glove_color,
-                    (head_x + px * punch_dir, arm_y + py),
-                    6
+                    screen, glove_color, (head_x + px * punch_dir, arm_y + py), 6
                 )
         else:
             # Idle arms
@@ -384,9 +361,5 @@ class Player:
         )
 
         # Feet
-        pygame.draw.ellipse(
-            screen, body_color, (head_x - 18, leg_bottom - 3, 12, 6)
-        )
-        pygame.draw.ellipse(
-            screen, body_color, (head_x + 6, leg_bottom - 3, 12, 6)
-        )
+        pygame.draw.ellipse(screen, body_color, (head_x - 18, leg_bottom - 3, 12, 6))
+        pygame.draw.ellipse(screen, body_color, (head_x + 6, leg_bottom - 3, 12, 6))
