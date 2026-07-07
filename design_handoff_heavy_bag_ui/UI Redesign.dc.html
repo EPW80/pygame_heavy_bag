@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="design_doc_mode" content="canvas">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; background: #17181C; }
+    @keyframes zoneGlow { 0%,100% { opacity: 0.55; } 50% { opacity: 1; } }
+  </style>
+</helmet>
+<section style="display:flex; flex-direction:column; gap:28px; padding:60px; font-family:'Barlow',Arial,sans-serif;">
+
+  <svg width="0" height="0" style="position:absolute;">
+    <defs>
+      <g id="rPlayer">
+        <circle cx="40" cy="25" r="20" fill="rgb(255,220,177)" stroke="black" stroke-width="2"></circle>
+        <path d="M 22 22 A 18 15 0 0 1 58 22" stroke="rgb(101,67,33)" stroke-width="8" fill="none"></path>
+        <circle cx="34" cy="22" r="4" fill="white"></circle>
+        <circle cx="46" cy="22" r="4" fill="white"></circle>
+        <circle cx="35" cy="22" r="2" fill="black"></circle>
+        <circle cx="45" cy="22" r="2" fill="black"></circle>
+        <circle cx="40" cy="28" r="2" fill="rgb(200,180,150)"></circle>
+        <path d="M 37 33 A 3 2 0 0 1 43 33" stroke="black" stroke-width="1" fill="none"></path>
+        <rect x="35" y="44" width="10" height="8" fill="rgb(255,220,177)"></rect>
+        <rect x="25" y="52" width="30" height="35" fill="rgb(200,200,200)" stroke="rgb(64,64,64)" stroke-width="2"></rect>
+        <ellipse cx="58" cy="67.5" rx="6" ry="12.5" fill="rgb(255,220,177)"></ellipse>
+        <ellipse cx="63" cy="85" rx="5" ry="10" fill="rgb(255,220,177)"></ellipse>
+        <ellipse cx="22" cy="67.5" rx="6" ry="12.5" fill="rgb(255,220,177)"></ellipse>
+        <ellipse cx="17" cy="85" rx="5" ry="10" fill="rgb(255,220,177)"></ellipse>
+        <circle cx="63" cy="85" r="8" fill="rgb(220,20,20)" stroke="rgb(180,0,0)" stroke-width="2"></circle>
+        <rect x="57" y="82" width="12" height="3" fill="black"></rect>
+        <circle cx="17" cy="85" r="8" fill="rgb(220,20,20)" stroke="rgb(180,0,0)" stroke-width="2"></circle>
+        <rect x="11" y="82" width="12" height="3" fill="black"></rect>
+        <rect x="28" y="87" width="24" height="20" fill="rgb(50,50,150)" stroke="rgb(64,64,64)" stroke-width="2"></rect>
+        <line x1="30" y1="92" x2="50" y2="92" stroke="white" stroke-width="2"></line>
+        <line x1="30" y1="98" x2="50" y2="98" stroke="white" stroke-width="2"></line>
+        <ellipse cx="34" cy="114" rx="4" ry="9" fill="rgb(255,220,177)"></ellipse>
+        <ellipse cx="46" cy="114" rx="4" ry="9" fill="rgb(255,220,177)"></ellipse>
+        <ellipse cx="34" cy="122" rx="8" ry="4" fill="black"></ellipse>
+        <ellipse cx="46" cy="122" rx="8" ry="4" fill="black"></ellipse>
+        <ellipse cx="34" cy="121" rx="6" ry="2" fill="white"></ellipse>
+        <ellipse cx="46" cy="121" rx="6" ry="2" fill="white"></ellipse>
+        <text x="30" y="70" font-size="12" font-weight="700" fill="rgb(64,64,64)" font-family="Barlow,Arial,sans-serif">FIGHT</text>
+        <rect x="55" y="78" width="8" height="4" fill="white" stroke="rgb(128,128,128)" stroke-width="1"></rect>
+        <rect x="17" y="78" width="8" height="4" fill="white" stroke="rgb(128,128,128)" stroke-width="1"></rect>
+      </g>
+      <g id="charA">
+        <ellipse cx="40" cy="111" rx="20" ry="3.5" fill="rgba(0,0,0,0.4)"></ellipse>
+        <path d="M 33 76 L 32 100" stroke="#F5C89A" stroke-width="7" stroke-linecap="round" fill="none"></path>
+        <path d="M 47 76 L 48 100" stroke="#F5C89A" stroke-width="7" stroke-linecap="round" fill="none"></path>
+        <rect x="24" y="98" width="15" height="9" rx="3" fill="#1B1B1F" stroke="#241C12" stroke-width="1.5"></rect>
+        <rect x="41" y="98" width="15" height="9" rx="3" fill="#1B1B1F" stroke="#241C12" stroke-width="1.5"></rect>
+        <rect x="23" y="105.5" width="17" height="3.5" rx="1.5" fill="#EDEAE3" stroke="#241C12" stroke-width="1"></rect>
+        <rect x="40" y="105.5" width="17" height="3.5" rx="1.5" fill="#EDEAE3" stroke="#241C12" stroke-width="1"></rect>
+        <circle cx="28" cy="40" r="5" fill="#F5C89A" stroke="#241C12" stroke-width="1.5"></circle>
+        <circle cx="52" cy="40" r="5" fill="#F5C89A" stroke="#241C12" stroke-width="1.5"></circle>
+        <path d="M 28 41 L 20 53" stroke="#F5C89A" stroke-width="7" stroke-linecap="round" fill="none"></path>
+        <path d="M 52 41 L 60 53" stroke="#F5C89A" stroke-width="7" stroke-linecap="round" fill="none"></path>
+        <path d="M 27 37 L 53 37 L 56 62 Q 40 66 24 62 Z" fill="#EDEAE3" stroke="#241C12" stroke-width="1.5"></path>
+        <path d="M 25 60.5 Q 40 64 55 60.5" stroke="#D23B2E" stroke-width="1.5" fill="none"></path>
+        <path d="M 26 62 L 54 62 L 55 78 L 43 78 L 40 72 L 37 78 L 25 78 Z" fill="#3A44B8" stroke="#241C12" stroke-width="1.5"></path>
+        <rect x="26" y="60" width="28" height="3.5" fill="#F0C330" stroke="#241C12" stroke-width="1"></rect>
+        <path d="M 28 65 L 27 76" stroke="#EDEAE3" stroke-width="2" fill="none"></path>
+        <path d="M 52 65 L 53 76" stroke="#EDEAE3" stroke-width="2" fill="none"></path>
+        <rect x="36" y="29" width="8" height="7" fill="#F5C89A" stroke="#241C12" stroke-width="1.2"></rect>
+        <circle cx="40" cy="20" r="12" fill="#F5C89A" stroke="#241C12" stroke-width="1.8"></circle>
+        <circle cx="27.5" cy="21" r="2.2" fill="#F5C89A" stroke="#241C12" stroke-width="1.2"></circle>
+        <circle cx="52.5" cy="21" r="2.2" fill="#F5C89A" stroke="#241C12" stroke-width="1.2"></circle>
+        <path d="M 29 14 A 12.5 10 0 0 1 51 14" stroke="#6B4423" stroke-width="7" stroke-linecap="round" fill="none"></path>
+        <path d="M 33 16.5 L 38 18" stroke="#241C12" stroke-width="1.5" stroke-linecap="round"></path>
+        <path d="M 47 16.5 L 42 18" stroke="#241C12" stroke-width="1.5" stroke-linecap="round"></path>
+        <circle cx="36" cy="20.5" r="1.3" fill="#241C12"></circle>
+        <circle cx="44" cy="20.5" r="1.3" fill="#241C12"></circle>
+        <path d="M 37 25.5 L 43 25.5" stroke="#241C12" stroke-width="1.5" stroke-linecap="round"></path>
+        <path d="M 20 53 L 24 38" stroke="#F5C89A" stroke-width="6" stroke-linecap="round" fill="none"></path>
+        <path d="M 60 53 L 56 38" stroke="#F5C89A" stroke-width="6" stroke-linecap="round" fill="none"></path>
+        <circle cx="25" cy="33" r="8.5" fill="#D23B2E" stroke="#241C12" stroke-width="1.8"></circle>
+        <circle cx="30" cy="38.5" r="3" fill="#D23B2E" stroke="#241C12" stroke-width="1.4"></circle>
+        <path d="M 18 36 Q 25 39.5 32 36" stroke="#A32B22" stroke-width="2" fill="none"></path>
+        <circle cx="55" cy="33" r="8.5" fill="#D23B2E" stroke="#241C12" stroke-width="1.8"></circle>
+        <circle cx="50" cy="38.5" r="3" fill="#D23B2E" stroke="#241C12" stroke-width="1.4"></circle>
+        <path d="M 48 36 Q 55 39.5 62 36" stroke="#A32B22" stroke-width="2" fill="none"></path>
+      </g>
+      <g id="charB">
+        <ellipse cx="40" cy="111" rx="20" ry="3.5" fill="rgba(0,0,0,0.4)"></ellipse>
+        <path d="M 33 78 L 32 101" stroke="#262830" stroke-width="7" stroke-linecap="round" fill="none"></path>
+        <path d="M 47 78 L 48 101" stroke="#262830" stroke-width="7" stroke-linecap="round" fill="none"></path>
+        <rect x="24" y="99" width="15" height="9" rx="3" fill="#1C1E24"></rect>
+        <rect x="41" y="99" width="15" height="9" rx="3" fill="#1C1E24"></rect>
+        <rect x="23" y="106.5" width="17" height="3.5" rx="1.5" fill="#F0C330"></rect>
+        <rect x="40" y="106.5" width="17" height="3.5" rx="1.5" fill="#F0C330"></rect>
+        <path d="M 28 37 L 20 50" stroke="#262830" stroke-width="7" stroke-linecap="round" fill="none"></path>
+        <path d="M 52 37 L 60 50" stroke="#262830" stroke-width="7" stroke-linecap="round" fill="none"></path>
+        <path d="M 28 33 Q 40 30 52 33 L 55 64 Q 40 69 25 64 Z" fill="#262830"></path>
+        <path d="M 26 64 L 54 64 L 55 80 L 42 80 L 40 74 L 38 80 L 25 80 Z" fill="#1C1E24"></path>
+        <rect x="26" y="62.5" width="28" height="3" fill="#F0C330"></rect>
+        <path d="M 28 67 L 27 78" stroke="#F0C330" stroke-width="2" fill="none"></path>
+        <path d="M 52 67 L 53 78" stroke="#F0C330" stroke-width="2" fill="none"></path>
+        <rect x="36" y="26" width="8" height="8" fill="#262830"></rect>
+        <circle cx="40" cy="18" r="11" fill="#262830"></circle>
+        <rect x="29.5" y="19" width="21" height="4" fill="#F0C330"></rect>
+        <path d="M 20 50 L 23 33" stroke="#262830" stroke-width="6" stroke-linecap="round" fill="none"></path>
+        <path d="M 60 50 L 57 33" stroke="#262830" stroke-width="6" stroke-linecap="round" fill="none"></path>
+        <circle cx="24" cy="29" r="8" fill="#F0C330"></circle>
+        <circle cx="29" cy="34" r="2.8" fill="#F0C330"></circle>
+        <circle cx="56" cy="29" r="8" fill="#F0C330"></circle>
+        <circle cx="51" cy="34" r="2.8" fill="#F0C330"></circle>
+      </g>
+      <g id="charC">
+        <ellipse cx="40" cy="111" rx="20" ry="3.5" fill="rgba(0,0,0,0.4)"></ellipse>
+        <path d="M 33 78 L 32 100" stroke="#8A5A3B" stroke-width="7" stroke-linecap="round" fill="none"></path>
+        <path d="M 47 78 L 48 100" stroke="#8A5A3B" stroke-width="7" stroke-linecap="round" fill="none"></path>
+        <rect x="24" y="98" width="15" height="9" rx="3" fill="#1B1B1F" stroke="#1C120A" stroke-width="1.5"></rect>
+        <rect x="41" y="98" width="15" height="9" rx="3" fill="#1B1B1F" stroke="#1C120A" stroke-width="1.5"></rect>
+        <rect x="23" y="105.5" width="17" height="3.5" rx="1.5" fill="#EDEAE3" stroke="#1C120A" stroke-width="1"></rect>
+        <rect x="40" y="105.5" width="17" height="3.5" rx="1.5" fill="#EDEAE3" stroke="#1C120A" stroke-width="1"></rect>
+        <circle cx="28" cy="40" r="5" fill="#8A5A3B" stroke="#1C120A" stroke-width="1.5"></circle>
+        <circle cx="52" cy="40" r="5" fill="#8A5A3B" stroke="#1C120A" stroke-width="1.5"></circle>
+        <path d="M 28 41 L 20 53" stroke="#8A5A3B" stroke-width="7" stroke-linecap="round" fill="none"></path>
+        <path d="M 52 40 L 61 29" stroke="#8A5A3B" stroke-width="7" stroke-linecap="round" fill="none"></path>
+        <path d="M 27 36 L 53 36 L 56 61 Q 40 65 24 61 Z" fill="#8A5A3B" stroke="#1C120A" stroke-width="1.5"></path>
+        <path d="M 32 44 Q 36 47 40 45" stroke="#6E4429" stroke-width="1.5" fill="none"></path>
+        <path d="M 48 44 Q 44 47 40 45" stroke="#6E4429" stroke-width="1.5" fill="none"></path>
+        <path d="M 40 51 L 40 59" stroke="#6E4429" stroke-width="1.5" fill="none"></path>
+        <path d="M 36 54 L 39 54" stroke="#6E4429" stroke-width="1.2" fill="none"></path>
+        <path d="M 41 57 L 44 57" stroke="#6E4429" stroke-width="1.2" fill="none"></path>
+        <rect x="25" y="59.5" width="30" height="5.5" fill="#F0C330" stroke="#1C120A" stroke-width="1.2"></rect>
+        <circle cx="40" cy="62.2" r="3.2" fill="#D23B2E" stroke="#1C120A" stroke-width="1.2"></circle>
+        <path d="M 26 65 L 54 65 L 55 80 L 43 80 L 40 74 L 37 80 L 25 80 Z" fill="#EDEAE3" stroke="#1C120A" stroke-width="1.5"></path>
+        <path d="M 28 67 L 27 78" stroke="#D23B2E" stroke-width="2" fill="none"></path>
+        <path d="M 52 67 L 53 78" stroke="#D23B2E" stroke-width="2" fill="none"></path>
+        <rect x="36" y="28" width="8" height="7" fill="#8A5A3B" stroke="#1C120A" stroke-width="1.2"></rect>
+        <circle cx="40" cy="19" r="12" fill="#8A5A3B" stroke="#1C120A" stroke-width="1.8"></circle>
+        <circle cx="27.5" cy="20" r="2.2" fill="#8A5A3B" stroke="#1C120A" stroke-width="1.2"></circle>
+        <circle cx="52.5" cy="20" r="2.2" fill="#8A5A3B" stroke="#1C120A" stroke-width="1.2"></circle>
+        <path d="M 30 12.5 A 12.5 9 0 0 1 50 12.5" stroke="#14100C" stroke-width="6" stroke-linecap="round" fill="none"></path>
+        <path d="M 33 15.5 L 38 17" stroke="#1C120A" stroke-width="1.5" stroke-linecap="round"></path>
+        <path d="M 47 15.5 L 42 17" stroke="#1C120A" stroke-width="1.5" stroke-linecap="round"></path>
+        <circle cx="36" cy="19.5" r="1.3" fill="#1C120A"></circle>
+        <circle cx="44" cy="19.5" r="1.3" fill="#1C120A"></circle>
+        <path d="M 36 24.5 Q 40 27 44 24.5" stroke="#1C120A" stroke-width="1.5" fill="none"></path>
+        <path d="M 20 53 L 24 38" stroke="#8A5A3B" stroke-width="6" stroke-linecap="round" fill="none"></path>
+        <path d="M 61 29 L 58 15" stroke="#8A5A3B" stroke-width="6" stroke-linecap="round" fill="none"></path>
+        <circle cx="25" cy="33" r="8.5" fill="#D23B2E" stroke="#1C120A" stroke-width="1.8"></circle>
+        <circle cx="30" cy="38.5" r="3" fill="#D23B2E" stroke="#1C120A" stroke-width="1.4"></circle>
+        <path d="M 18 36 Q 25 39.5 32 36" stroke="#A32B22" stroke-width="2" fill="none"></path>
+        <circle cx="58" cy="10" r="8.5" fill="#D23B2E" stroke="#1C120A" stroke-width="1.8"></circle>
+        <circle cx="52.5" cy="13" r="3" fill="#D23B2E" stroke="#1C120A" stroke-width="1.4"></circle>
+        <path d="M 51 7.5 Q 58 4.5 65 7.5" stroke="#A32B22" stroke-width="2" fill="none"></path>
+      </g>
+      <linearGradient id="celSceneBg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#0D0E13"></stop>
+        <stop offset="1" stop-color="#23242B"></stop>
+      </linearGradient>
+      <linearGradient id="celBagGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#5A2C16"></stop>
+        <stop offset="1" stop-color="#33150A"></stop>
+      </linearGradient>
+      <radialGradient id="celLight" cx="0.5" cy="0" r="1">
+        <stop offset="0" stop-color="rgba(255,244,200,0.20)"></stop>
+        <stop offset="1" stop-color="rgba(255,244,200,0)"></stop>
+      </radialGradient>
+      <linearGradient id="celZoneGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="rgba(69,212,131,0)"></stop>
+        <stop offset="1" stop-color="rgba(69,212,131,0.22)"></stop>
+      </linearGradient>
+      <g id="celGlove">
+        <circle cx="0" cy="0" r="8.5" fill="#D23B2E" stroke="#241C12" stroke-width="1.8"></circle>
+        <circle cx="5" cy="5.5" r="3" fill="#D23B2E" stroke="#241C12" stroke-width="1.4"></circle>
+        <path d="M -7 3 Q 0 6.5 7 3" stroke="#A32B22" stroke-width="2" fill="none"></path>
+      </g>
+      <g id="celHead">
+        <rect x="36" y="29" width="8" height="7" fill="#F5C89A" stroke="#241C12" stroke-width="1.2"></rect>
+        <circle cx="40" cy="20" r="12" fill="#F5C89A" stroke="#241C12" stroke-width="1.8"></circle>
+        <circle cx="27.5" cy="21" r="2.2" fill="#F5C89A" stroke="#241C12" stroke-width="1.2"></circle>
+        <circle cx="52.5" cy="21" r="2.2" fill="#F5C89A" stroke="#241C12" stroke-width="1.2"></circle>
+        <path d="M 29 14 A 12.5 10 0 0 1 51 14" stroke="#6B4423" stroke-width="7" stroke-linecap="round" fill="none"></path>
+        <path d="M 33 16.5 L 38 18" stroke="#241C12" stroke-width="1.5" stroke-linecap="round"></path>
+        <path d="M 47 16.5 L 42 18" stroke="#241C12" stroke-width="1.5" stroke-linecap="round"></path>
+        <circle cx="36" cy="20.5" r="1.3" fill="#241C12"></circle>
+        <circle cx="44" cy="20.5" r="1.3" fill="#241C12"></circle>
+        <path d="M 37 25.5 L 43 25.5" stroke="#241C12" stroke-width="1.5" stroke-linecap="round"></path>
+      </g>
+      <g id="celTorso">
+        <circle cx="28" cy="40" r="5" fill="#F5C89A" stroke="#241C12" stroke-width="1.5"></circle>
+        <circle cx="52" cy="40" r="5" fill="#F5C89A" stroke="#241C12" stroke-width="1.5"></circle>
+        <path d="M 27 37 L 53 37 L 56 62 Q 40 66 24 62 Z" fill="#EDEAE3" stroke="#241C12" stroke-width="1.5"></path>
+        <path d="M 25 60.5 Q 40 64 55 60.5" stroke="#D23B2E" stroke-width="1.5" fill="none"></path>
+      </g>
+      <g id="celShorts">
+        <path d="M 26 62 L 54 62 L 55 78 L 43 78 L 40 72 L 37 78 L 25 78 Z" fill="#3A44B8" stroke="#241C12" stroke-width="1.5"></path>
+        <rect x="26" y="60" width="28" height="3.5" fill="#F0C330" stroke="#241C12" stroke-width="1"></rect>
+        <path d="M 28 65 L 27 76" stroke="#EDEAE3" stroke-width="2" fill="none"></path>
+        <path d="M 52 65 L 53 76" stroke="#EDEAE3" stroke-width="2" fill="none"></path>
+      </g>
+      <g id="celLegL">
+        <path d="M 33 76 L 32 100" stroke="#F5C89A" stroke-width="7" stroke-linecap="round" fill="none"></path>
+        <rect x="24" y="98" width="15" height="9" rx="3" fill="#1B1B1F" stroke="#241C12" stroke-width="1.5"></rect>
+        <rect x="23" y="105.5" width="17" height="3.5" rx="1.5" fill="#EDEAE3" stroke="#241C12" stroke-width="1"></rect>
+      </g>
+      <g id="celLegR">
+        <path d="M 47 76 L 48 100" stroke="#F5C89A" stroke-width="7" stroke-linecap="round" fill="none"></path>
+        <rect x="41" y="98" width="15" height="9" rx="3" fill="#1B1B1F" stroke="#241C12" stroke-width="1.5"></rect>
+        <rect x="40" y="105.5" width="17" height="3.5" rx="1.5" fill="#EDEAE3" stroke="#241C12" stroke-width="1"></rect>
+      </g>
+      <g id="celArmGuardL">
+        <path d="M 28 41 L 20 53" stroke="#F5C89A" stroke-width="7" stroke-linecap="round" fill="none"></path>
+        <path d="M 20 53 L 24 38" stroke="#F5C89A" stroke-width="6" stroke-linecap="round" fill="none"></path>
+        <use href="#celGlove" transform="translate(25,33)"></use>
+      </g>
+      <g id="celArmGuardR">
+        <path d="M 52 41 L 60 53" stroke="#F5C89A" stroke-width="7" stroke-linecap="round" fill="none"></path>
+        <path d="M 60 53 L 56 38" stroke="#F5C89A" stroke-width="6" stroke-linecap="round" fill="none"></path>
+        <use href="#celGlove" transform="translate(55,33)"></use>
+      </g>
+      <g id="celPoseIdle">
+        <ellipse cx="42" cy="111" rx="22" ry="3.5" fill="rgba(0,0,0,0.4)"></ellipse>
+        <use href="#celLegL"></use><use href="#celLegR"></use><use href="#celShorts"></use><use href="#celTorso"></use><use href="#celHead"></use><use href="#celArmGuardL"></use><use href="#celArmGuardR"></use>
+      </g>
+      <g id="celPoseJab">
+        <ellipse cx="42" cy="111" rx="22" ry="3.5" fill="rgba(0,0,0,0.4)"></ellipse>
+        <use href="#celLegL"></use><use href="#celLegR"></use><use href="#celShorts"></use><use href="#celTorso"></use><use href="#celHead"></use><use href="#celArmGuardL"></use>
+        <path d="M 52 41 L 78 38" stroke="#F5C89A" stroke-width="6.5" stroke-linecap="round" fill="none"></path>
+        <use href="#celGlove" transform="translate(84.5,37.5)"></use>
+        <path d="M 62 31.5 L 70 31" stroke="rgba(255,255,255,0.55)" stroke-width="2" stroke-linecap="round"></path>
+        <path d="M 60 38 L 70 38" stroke="rgba(255,255,255,0.55)" stroke-width="2" stroke-linecap="round"></path>
+        <path d="M 62 44.5 L 70 44" stroke="rgba(255,255,255,0.55)" stroke-width="2" stroke-linecap="round"></path>
+      </g>
+      <g id="celPoseCross">
+        <ellipse cx="42" cy="111" rx="22" ry="3.5" fill="rgba(0,0,0,0.4)"></ellipse>
+        <use href="#celLegL"></use><use href="#celLegR"></use><use href="#celShorts"></use><use href="#celTorso"></use><use href="#celHead"></use><use href="#celArmGuardR"></use>
+        <path d="M 28 41 L 80 38" stroke="#F5C89A" stroke-width="6.5" stroke-linecap="round" fill="none"></path>
+        <use href="#celGlove" transform="translate(86.5,37.5)"></use>
+        <path d="M 96 31 L 102 26" stroke="#F5D90A" stroke-width="2.5" stroke-linecap="round"></path>
+        <path d="M 98 37.5 L 106 37.5" stroke="#F5D90A" stroke-width="2.5" stroke-linecap="round"></path>
+        <path d="M 96 44 L 102 49" stroke="#F5D90A" stroke-width="2.5" stroke-linecap="round"></path>
+        <path d="M 90 28 L 93 21" stroke="#F5D90A" stroke-width="2.5" stroke-linecap="round"></path>
+      </g>
+      <g id="celPoseHook">
+        <ellipse cx="42" cy="111" rx="22" ry="3.5" fill="rgba(0,0,0,0.4)"></ellipse>
+        <use href="#celLegL"></use><use href="#celLegR"></use><use href="#celShorts"></use><use href="#celTorso"></use><use href="#celHead"></use><use href="#celArmGuardL"></use>
+        <path d="M 52 41 L 69 47" stroke="#F5C89A" stroke-width="7" stroke-linecap="round" fill="none"></path>
+        <path d="M 69 47 L 77 31" stroke="#F5C89A" stroke-width="6" stroke-linecap="round" fill="none"></path>
+        <use href="#celGlove" transform="translate(79,26)"></use>
+        <path d="M 55 14 Q 77 13 82 25" stroke="#F0C330" stroke-width="2.5" fill="none" opacity="0.85"></path>
+      </g>
+      <g id="celPoseUppercut">
+        <ellipse cx="42" cy="111" rx="22" ry="3.5" fill="rgba(0,0,0,0.4)"></ellipse>
+        <use href="#celLegL"></use><use href="#celLegR"></use><use href="#celShorts"></use><use href="#celTorso"></use><use href="#celHead"></use><use href="#celArmGuardL"></use>
+        <path d="M 52 41 L 61 55" stroke="#F5C89A" stroke-width="7" stroke-linecap="round" fill="none"></path>
+        <path d="M 61 55 L 59.5 29" stroke="#F5C89A" stroke-width="6" stroke-linecap="round" fill="none"></path>
+        <use href="#celGlove" transform="translate(59,21)"></use>
+        <path d="M 50 36 L 50 42" stroke="rgba(255,255,255,0.55)" stroke-width="2" stroke-linecap="round"></path>
+        <path d="M 68 33 L 68 40" stroke="rgba(255,255,255,0.55)" stroke-width="2" stroke-linecap="round"></path>
+        <path d="M 59 44 L 59 51" stroke="rgba(255,255,255,0.55)" stroke-width="2" stroke-linecap="round"></path>
+      </g>
+      <g id="celPoseFrontKick">
+        <ellipse cx="48" cy="111" rx="26" ry="3.5" fill="rgba(0,0,0,0.4)"></ellipse>
+        <use href="#celLegL"></use>
+        <path d="M 46 77 L 64 71" stroke="#F5C89A" stroke-width="7" stroke-linecap="round" fill="none"></path>
+        <path d="M 64 71 L 82 66.5" stroke="#F5C89A" stroke-width="6" stroke-linecap="round" fill="none"></path>
+        <g transform="translate(87,66) rotate(8)">
+          <rect x="-8" y="-4.5" width="15" height="9" rx="3" fill="#1B1B1F" stroke="#241C12" stroke-width="1.5"></rect>
+          <rect x="6" y="-5.5" width="3.5" height="11" rx="1.5" fill="#EDEAE3" stroke="#241C12" stroke-width="1"></rect>
+        </g>
+        <use href="#celShorts"></use><use href="#celTorso"></use><use href="#celHead"></use><use href="#celArmGuardL"></use><use href="#celArmGuardR"></use>
+        <path d="M 100 58 L 104 53" stroke="#F5D90A" stroke-width="2.5" stroke-linecap="round"></path>
+        <path d="M 102 65 L 109 65" stroke="#F5D90A" stroke-width="2.5" stroke-linecap="round"></path>
+        <path d="M 100 72 L 104 77" stroke="#F5D90A" stroke-width="2.5" stroke-linecap="round"></path>
+      </g>
+      <g id="celPoseRoundhouse">
+        <ellipse cx="46" cy="111" rx="24" ry="3.5" fill="rgba(0,0,0,0.4)"></ellipse>
+        <use href="#celLegL"></use>
+        <path d="M 46 77 L 63 61" stroke="#F5C89A" stroke-width="7" stroke-linecap="round" fill="none"></path>
+        <path d="M 63 61 L 79 50" stroke="#F5C89A" stroke-width="6" stroke-linecap="round" fill="none"></path>
+        <g transform="translate(84,46.5) rotate(-30)">
+          <rect x="-8" y="-4.5" width="15" height="9" rx="3" fill="#1B1B1F" stroke="#241C12" stroke-width="1.5"></rect>
+          <rect x="6" y="-5.5" width="3.5" height="11" rx="1.5" fill="#EDEAE3" stroke="#241C12" stroke-width="1"></rect>
+        </g>
+        <path d="M 60 88 Q 92 79 84 51" stroke="#F0C330" stroke-width="2.5" fill="none" opacity="0.85"></path>
+        <use href="#celShorts"></use><use href="#celTorso"></use><use href="#celHead"></use><use href="#celArmGuardL"></use><use href="#celArmGuardR"></use>
+      </g>
+      <g id="celPoseLowKick">
+        <ellipse cx="48" cy="111" rx="26" ry="3.5" fill="rgba(0,0,0,0.4)"></ellipse>
+        <use href="#celLegL"></use>
+        <path d="M 46 77 L 64 86" stroke="#F5C89A" stroke-width="7" stroke-linecap="round" fill="none"></path>
+        <path d="M 64 86 L 82 92" stroke="#F5C89A" stroke-width="6" stroke-linecap="round" fill="none"></path>
+        <g transform="translate(87,92.5) rotate(10)">
+          <rect x="-8" y="-4.5" width="15" height="9" rx="3" fill="#1B1B1F" stroke="#241C12" stroke-width="1.5"></rect>
+          <rect x="6" y="-5.5" width="3.5" height="11" rx="1.5" fill="#EDEAE3" stroke="#241C12" stroke-width="1"></rect>
+        </g>
+        <path d="M 62 101 L 70 101" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round"></path>
+        <path d="M 66 106 L 74 106" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round"></path>
+        <use href="#celShorts"></use><use href="#celTorso"></use><use href="#celHead"></use><use href="#celArmGuardL"></use><use href="#celArmGuardR"></use>
+      </g>
+    </defs>
+  </svg>
+
+  <div style="color:#9BA0A8; font-size:15px; max-width:960px; line-height:1.5;">
+    <div style="color:#E8EAED; font-size:20px; font-weight:700; margin-bottom:6px;">Turn 4 — Jab → Cross combo, animated</div>
+    Sprite-swap timing like the game (15-frame punches), with damped bag swing, impact rings, screen shake on the cross, floating score and combo pop. Scrub the timeline or press space to play; loops every 4s.
+  </div>
+
+  <div id="4a" style="width:1000px;">
+    <div style="color:#9BA0A8; font-size:13px; font-weight:700; margin-bottom:8px;"><a href="#4a" style="color:#F0C330; text-decoration:none;">4a</a> · Combo animation — <a href="#3a" style="color:#F0C330;">3a</a> poses in motion</div>
+    <div style="background:#101116; border:1px solid rgba(255,255,255,0.08); padding:20px;">
+      <div style="position:relative; width:960px; height:600px; overflow:hidden;">
+        <x-import component-from-global-scope="ComboScene" from="./combo-anim.jsx" hint-size="960px,600px"></x-import>
+      </div>
+    </div>
+  </div>
+
+  <div style="border-top:1px solid rgba(255,255,255,0.08); margin-top:20px;"></div>
+
+  <div style="color:#9BA0A8; font-size:15px; max-width:960px; line-height:1.5;">
+    <div style="color:#E8EAED; font-size:20px; font-weight:700; margin-bottom:6px;">Turn 3 — Cel Classic (<a href="#2a" style="color:#F0C330;">2a</a>) developed</div>
+    Full in-game sprite set — idle plus all 7 attacks from <span style="color:#D7DBE0;">graphics.py</span>, with the original poses' motion lines, arc trails and impact bursts reinterpreted in the cel style. Plus an in-action scene preview at gameplay scale.
+  </div>
+
+  <div style="display:flex; flex-wrap:wrap; gap:40px; align-items:flex-start;">
+
+    <div id="3a" style="width:1200px;">
+      <div style="color:#9BA0A8; font-size:13px; font-weight:700; margin-bottom:8px;"><a href="#3a" style="color:#F0C330; text-decoration:none;">3a</a> · Pose sheet — idle + 7 attacks</div>
+      <div style="background:#101116; border:1px solid rgba(255,255,255,0.08); padding:28px 32px; display:grid; grid-template-columns:repeat(4, 1fr); gap:18px;">
+        <div style="border:1px solid rgba(255,255,255,0.07); background:rgba(255,255,255,0.02); padding:16px 18px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:24px; color:#F2F3F5;">IDLE</div>
+            <div style="font-size:13px; font-weight:700; color:rgba(235,237,240,0.35);">GUARD</div>
+          </div>
+          <svg viewBox="0 0 110 116" width="210" height="221" style="display:block; margin:10px auto 0;"><use href="#celPoseIdle"></use></svg>
+        </div>
+        <div style="border:1px solid rgba(255,255,255,0.07); background:rgba(255,255,255,0.02); padding:16px 18px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; align-items:center; gap:10px;"><div style="width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.25); border-radius:6px; font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:18px; color:#F2F3F5;">Z</div><div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:24px; color:#F2F3F5;">JAB</div></div>
+            <div style="font-size:13px; font-weight:700; color:#45D483;">-5 STA</div>
+          </div>
+          <svg viewBox="0 0 110 116" width="210" height="221" style="display:block; margin:10px auto 0;"><use href="#celPoseJab"></use></svg>
+        </div>
+        <div style="border:1px solid rgba(255,255,255,0.07); background:rgba(255,255,255,0.02); padding:16px 18px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; align-items:center; gap:10px;"><div style="width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.25); border-radius:6px; font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:18px; color:#F2F3F5;">X</div><div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:24px; color:#F2F3F5;">CROSS</div></div>
+            <div style="font-size:13px; font-weight:700; color:#45D483;">-8 STA</div>
+          </div>
+          <svg viewBox="0 0 110 116" width="210" height="221" style="display:block; margin:10px auto 0;"><use href="#celPoseCross"></use></svg>
+        </div>
+        <div style="border:1px solid rgba(255,255,255,0.07); background:rgba(255,255,255,0.02); padding:16px 18px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; align-items:center; gap:10px;"><div style="width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.25); border-radius:6px; font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:18px; color:#F2F3F5;">C</div><div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:24px; color:#F2F3F5;">HOOK</div></div>
+            <div style="font-size:13px; font-weight:700; color:#45D483;">-10 STA</div>
+          </div>
+          <svg viewBox="0 0 110 116" width="210" height="221" style="display:block; margin:10px auto 0;"><use href="#celPoseHook"></use></svg>
+        </div>
+        <div style="border:1px solid rgba(255,255,255,0.07); background:rgba(255,255,255,0.02); padding:16px 18px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; align-items:center; gap:10px;"><div style="width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.25); border-radius:6px; font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:18px; color:#F2F3F5;">V</div><div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:24px; color:#F2F3F5;">UPPERCUT</div></div>
+            <div style="font-size:13px; font-weight:700; color:#45D483;">-12 STA</div>
+          </div>
+          <svg viewBox="0 0 110 116" width="210" height="221" style="display:block; margin:10px auto 0;"><use href="#celPoseUppercut"></use></svg>
+        </div>
+        <div style="border:1px solid rgba(255,255,255,0.07); background:rgba(255,255,255,0.02); padding:16px 18px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; align-items:center; gap:10px;"><div style="width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.25); border-radius:6px; font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:18px; color:#F2F3F5;">Q</div><div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:24px; color:#F2F3F5;">FRONT KICK</div></div>
+            <div style="font-size:13px; font-weight:700; color:#45D483;">-15 STA</div>
+          </div>
+          <svg viewBox="0 0 110 116" width="210" height="221" style="display:block; margin:10px auto 0;"><use href="#celPoseFrontKick"></use></svg>
+        </div>
+        <div style="border:1px solid rgba(255,255,255,0.07); background:rgba(255,255,255,0.02); padding:16px 18px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; align-items:center; gap:10px;"><div style="width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.25); border-radius:6px; font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:18px; color:#F2F3F5;">W</div><div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:24px; color:#F2F3F5;">ROUNDHOUSE</div></div>
+            <div style="font-size:13px; font-weight:700; color:#45D483;">-18 STA</div>
+          </div>
+          <svg viewBox="0 0 110 116" width="210" height="221" style="display:block; margin:10px auto 0;"><use href="#celPoseRoundhouse"></use></svg>
+        </div>
+        <div style="border:1px solid rgba(255,255,255,0.07); background:rgba(255,255,255,0.02); padding:16px 18px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; align-items:center; gap:10px;"><div style="width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.25); border-radius:6px; font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:18px; color:#F2F3F5;">E</div><div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:24px; color:#F2F3F5;">LOW KICK</div></div>
+            <div style="font-size:13px; font-weight:700; color:#45D483;">-12 STA</div>
+          </div>
+          <svg viewBox="0 0 110 116" width="210" height="221" style="display:block; margin:10px auto 0;"><use href="#celPoseLowKick"></use></svg>
+        </div>
+      </div>
+    </div>
+
+    <div id="3b" style="width:964px;">
+      <div style="color:#9BA0A8; font-size:13px; font-weight:700; margin-bottom:8px;"><a href="#3b" style="color:#F0C330; text-decoration:none;">3b</a> · In action — jab landing at gameplay scale</div>
+      <div style="background:#101116; border:1px solid rgba(255,255,255,0.08); padding:30px;">
+        <svg viewBox="0 0 900 500" width="900" height="500" style="display:block;">
+          <rect x="0" y="0" width="900" height="500" fill="url(#celSceneBg)"></rect>
+          <ellipse cx="450" cy="20" rx="320" ry="190" fill="url(#celLight)"></ellipse>
+          <rect x="80" y="80" width="12" height="260" fill="#33343E" opacity="0.5"></rect>
+          <rect x="230" y="80" width="12" height="260" fill="#33343E" opacity="0.5"></rect>
+          <rect x="0" y="440" width="900" height="60" fill="#17181D"></rect>
+          <line x1="0" y1="440" x2="900" y2="440" stroke="#3C3D46" stroke-width="2"></line>
+          <g stroke="rgba(255,255,255,0.05)" stroke-width="1">
+            <line x1="90" y1="440" x2="90" y2="500"></line><line x1="180" y1="440" x2="180" y2="500"></line><line x1="270" y1="440" x2="270" y2="500"></line><line x1="360" y1="440" x2="360" y2="500"></line><line x1="450" y1="440" x2="450" y2="500"></line><line x1="540" y1="440" x2="540" y2="500"></line><line x1="630" y1="440" x2="630" y2="500"></line><line x1="720" y1="440" x2="720" y2="500"></line><line x1="810" y1="440" x2="810" y2="500"></line>
+          </g>
+          <rect x="505" y="340" width="280" height="100" fill="url(#celZoneGrad)"></rect>
+          <rect x="505" y="437" width="280" height="3" fill="#45D483" opacity="0.8"></rect>
+          <line x1="645" y1="0" x2="645" y2="130" stroke="#34353E" stroke-width="8"></line>
+          <line x1="647" y1="0" x2="647" y2="130" stroke="#4A4B55" stroke-width="2"></line>
+          <rect x="640" y="40" width="10" height="18" rx="3" fill="#3A3B45"></rect>
+          <rect x="640" y="95" width="10" height="18" rx="3" fill="#3A3B45"></rect>
+          <path d="M 605 172 L 645 128 L 685 172" stroke="#34353E" stroke-width="9" fill="none"></path>
+          <ellipse cx="645" cy="448" rx="90" ry="10" fill="rgba(0,0,0,0.45)"></ellipse>
+          <rect x="583" y="165" width="124" height="260" rx="32" fill="url(#celBagGrad)"></rect>
+          <g stroke="rgba(0,0,0,0.35)" stroke-width="2">
+            <line x1="593" y1="215" x2="697" y2="215"></line>
+            <line x1="593" y1="265" x2="697" y2="265"></line>
+            <line x1="593" y1="315" x2="697" y2="315"></line>
+            <line x1="593" y1="365" x2="697" y2="365"></line>
+          </g>
+          <ellipse cx="612" cy="295" rx="18" ry="95" fill="rgba(255,255,255,0.06)"></ellipse>
+          <text x="645" y="310" text-anchor="middle" font-family="'Bebas Neue','Arial Narrow',sans-serif" font-size="34" letter-spacing="6" fill="rgba(240,195,48,0.75)">HEAVY</text>
+          <use href="#celPoseJab" transform="translate(372,196) scale(2.2)"></use>
+          <circle cx="586" cy="278" r="24" stroke="#F5D90A" stroke-width="3" fill="none" opacity="0.85"></circle>
+          <circle cx="586" cy="278" r="36" stroke="#F5D90A" stroke-width="2" fill="none" opacity="0.4"></circle>
+          <text x="620" y="215" font-family="'Bebas Neue','Arial Narrow',sans-serif" font-size="44" fill="#F0C330">+48</text>
+        </svg>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="border-top:1px solid rgba(255,255,255,0.08); margin-top:20px;"></div>
+
+  <div style="color:#9BA0A8; font-size:15px; max-width:960px; line-height:1.5;">
+    <div style="color:#E8EAED; font-size:20px; font-weight:700; margin-bottom:6px;">Turn 2 — Main character redesign (3 directions)</div>
+    Replacements for the procedural boxer sprite, drawn on the same 80-unit grid so they drop into the game's sprite slot. Each shown large and at in-game scale next to the current sprite.
+  </div>
+
+  <div style="display:flex; flex-wrap:wrap; gap:40px; align-items:stretch;">
+
+    <div id="2a" style="width:520px; display:flex; flex-direction:column;">
+      <div style="color:#9BA0A8; font-size:13px; font-weight:700; margin-bottom:8px;"><a href="#2a" style="color:#F0C330; text-decoration:none;">2a</a> · Cel Classic</div>
+      <div style="flex:1; background:#101116; border:1px solid rgba(255,255,255,0.08); padding:32px 36px; display:flex; flex-direction:column;">
+        <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:40px; color:#F2F3F5; line-height:1;">CEL CLASSIC</div>
+        <div style="font-size:15px; color:#9BA0A8; line-height:1.5; margin-top:8px;">Faithful evolution of the current boxer — same kit (white tank, blue shorts, red gloves), rebuilt with clean cel outlines, real proportions and a proper peek-a-boo guard.</div>
+        <svg viewBox="0 0 80 116" width="290" height="420" style="display:block; margin:24px auto 8px;"><use href="#charA"></use></svg>
+        <div style="display:flex; gap:8px; justify-content:center; margin-bottom:24px;">
+          <div style="width:22px; height:22px; border-radius:50%; background:#F5C89A; border:1px solid rgba(255,255,255,0.15);"></div>
+          <div style="width:22px; height:22px; border-radius:50%; background:#EDEAE3; border:1px solid rgba(255,255,255,0.15);"></div>
+          <div style="width:22px; height:22px; border-radius:50%; background:#3A44B8; border:1px solid rgba(255,255,255,0.15);"></div>
+          <div style="width:22px; height:22px; border-radius:50%; background:#D23B2E; border:1px solid rgba(255,255,255,0.15);"></div>
+          <div style="width:22px; height:22px; border-radius:50%; background:#F0C330; border:1px solid rgba(255,255,255,0.15);"></div>
+        </div>
+        <div style="margin-top:auto; border-top:1px solid rgba(255,255,255,0.08); padding-top:18px; display:flex; align-items:flex-end; gap:28px;">
+          <div style="font-size:13px; font-weight:600; letter-spacing:0.14em; color:rgba(235,237,240,0.4); padding-bottom:4px;">IN-GAME SCALE →</div>
+          <svg viewBox="0 0 80 116" width="80" height="116"><use href="#charA"></use></svg>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+            <svg viewBox="0 0 80 126" width="80" height="126"><use href="#rPlayer"></use></svg>
+            <div style="font-size:12px; color:rgba(235,237,240,0.35); font-weight:600;">CURRENT</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="2b" style="width:520px; display:flex; flex-direction:column;">
+      <div style="color:#9BA0A8; font-size:13px; font-weight:700; margin-bottom:8px;"><a href="#2b" style="color:#F0C330; text-decoration:none;">2b</a> · Shadow Athlete</div>
+      <div style="flex:1; background:#101116; border:1px solid rgba(255,255,255,0.08); padding:32px 36px; display:flex; flex-direction:column;">
+        <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:40px; color:#F2F3F5; line-height:1;">SHADOW ATHLETE</div>
+        <div style="font-size:15px; color:#9BA0A8; line-height:1.5; margin-top:8px;">Flat, outline-free silhouette in the HUD's steel + gold. Reads instantly against the busy gym scene and makes the gloves — the gameplay verb — the brightest thing on screen.</div>
+        <svg viewBox="0 0 80 116" width="290" height="420" style="display:block; margin:24px auto 8px;"><use href="#charB"></use></svg>
+        <div style="display:flex; gap:8px; justify-content:center; margin-bottom:24px;">
+          <div style="width:22px; height:22px; border-radius:50%; background:#262830; border:1px solid rgba(255,255,255,0.15);"></div>
+          <div style="width:22px; height:22px; border-radius:50%; background:#1C1E24; border:1px solid rgba(255,255,255,0.15);"></div>
+          <div style="width:22px; height:22px; border-radius:50%; background:#F0C330; border:1px solid rgba(255,255,255,0.15);"></div>
+        </div>
+        <div style="margin-top:auto; border-top:1px solid rgba(255,255,255,0.08); padding-top:18px; display:flex; align-items:flex-end; gap:28px;">
+          <div style="font-size:13px; font-weight:600; letter-spacing:0.14em; color:rgba(235,237,240,0.4); padding-bottom:4px;">IN-GAME SCALE →</div>
+          <svg viewBox="0 0 80 116" width="80" height="116"><use href="#charB"></use></svg>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+            <svg viewBox="0 0 80 126" width="80" height="126"><use href="#rPlayer"></use></svg>
+            <div style="font-size:12px; color:rgba(235,237,240,0.35); font-weight:600;">CURRENT</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="2c" style="width:520px; display:flex; flex-direction:column;">
+      <div style="color:#9BA0A8; font-size:13px; font-weight:700; margin-bottom:8px;"><a href="#2c" style="color:#F0C330; text-decoration:none;">2c</a> · The Champ</div>
+      <div style="flex:1; background:#101116; border:1px solid rgba(255,255,255,0.08); padding:32px 36px; display:flex; flex-direction:column;">
+        <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:40px; color:#F2F3F5; line-height:1;">THE CHAMP</div>
+        <div style="font-size:15px; color:#9BA0A8; line-height:1.5; margin-top:8px;">A new hero with more attitude — bare-torso build, championship belt, one glove already celebrating. Leans into the "Pro Edition" fantasy and the gold accent of the menu.</div>
+        <svg viewBox="0 0 80 116" width="290" height="420" style="display:block; margin:24px auto 8px;"><use href="#charC"></use></svg>
+        <div style="display:flex; gap:8px; justify-content:center; margin-bottom:24px;">
+          <div style="width:22px; height:22px; border-radius:50%; background:#8A5A3B; border:1px solid rgba(255,255,255,0.15);"></div>
+          <div style="width:22px; height:22px; border-radius:50%; background:#EDEAE3; border:1px solid rgba(255,255,255,0.15);"></div>
+          <div style="width:22px; height:22px; border-radius:50%; background:#D23B2E; border:1px solid rgba(255,255,255,0.15);"></div>
+          <div style="width:22px; height:22px; border-radius:50%; background:#F0C330; border:1px solid rgba(255,255,255,0.15);"></div>
+        </div>
+        <div style="margin-top:auto; border-top:1px solid rgba(255,255,255,0.08); padding-top:18px; display:flex; align-items:flex-end; gap:28px;">
+          <div style="font-size:13px; font-weight:600; letter-spacing:0.14em; color:rgba(235,237,240,0.4); padding-bottom:4px;">IN-GAME SCALE →</div>
+          <svg viewBox="0 0 80 116" width="80" height="116"><use href="#charC"></use></svg>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+            <svg viewBox="0 0 80 126" width="80" height="126"><use href="#rPlayer"></use></svg>
+            <div style="font-size:12px; color:rgba(235,237,240,0.35); font-weight:600;">CURRENT</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="border-top:1px solid rgba(255,255,255,0.08); margin-top:20px;"></div>
+
+  <svg width="0" height="0" style="position:absolute;">
+    <defs>
+      <linearGradient id="rBg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#0D0E13"></stop>
+        <stop offset="1" stop-color="#23242B"></stop>
+      </linearGradient>
+      <radialGradient id="rLight" cx="0.5" cy="0" r="1">
+        <stop offset="0" stop-color="rgba(255,244,200,0.20)"></stop>
+        <stop offset="1" stop-color="rgba(255,244,200,0)"></stop>
+      </radialGradient>
+      <linearGradient id="rBagGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#5A2C16"></stop>
+        <stop offset="1" stop-color="#33150A"></stop>
+      </linearGradient>
+      <g id="rScene">
+        <rect x="0" y="0" width="1920" height="1080" fill="url(#rBg)"></rect>
+        <ellipse cx="400" cy="30" rx="320" ry="220" fill="url(#rLight)"></ellipse>
+        <ellipse cx="960" cy="30" rx="320" ry="220" fill="url(#rLight)"></ellipse>
+        <ellipse cx="1520" cy="30" rx="320" ry="220" fill="url(#rLight)"></ellipse>
+        <rect x="330" y="16" width="140" height="12" rx="3" fill="#B8B594"></rect>
+        <rect x="890" y="16" width="140" height="12" rx="3" fill="#B8B594"></rect>
+        <rect x="1450" y="16" width="140" height="12" rx="3" fill="#B8B594"></rect>
+        <rect x="180" y="160" width="14" height="440" fill="#33343E" opacity="0.55"></rect>
+        <rect x="480" y="160" width="14" height="440" fill="#33343E" opacity="0.55"></rect>
+        <rect x="780" y="160" width="14" height="440" fill="#33343E" opacity="0.55"></rect>
+        <rect x="80" y="760" width="220" height="230" fill="#15161B"></rect>
+        <circle cx="120" cy="800" r="16" fill="#1D1E25"></circle>
+        <circle cx="155" cy="800" r="16" fill="#1D1E25"></circle>
+        <circle cx="190" cy="800" r="16" fill="#1D1E25"></circle>
+        <circle cx="225" cy="800" r="16" fill="#1D1E25"></circle>
+        <circle cx="260" cy="800" r="16" fill="#1D1E25"></circle>
+        <rect x="0" y="990" width="1920" height="90" fill="#17181D"></rect>
+        <line x1="0" y1="990" x2="1920" y2="990" stroke="#3C3D46" stroke-width="2"></line>
+        <g stroke="rgba(255,255,255,0.05)" stroke-width="1">
+          <line x1="96" y1="990" x2="96" y2="1080"></line><line x1="192" y1="990" x2="192" y2="1080"></line><line x1="288" y1="990" x2="288" y2="1080"></line><line x1="384" y1="990" x2="384" y2="1080"></line><line x1="480" y1="990" x2="480" y2="1080"></line><line x1="576" y1="990" x2="576" y2="1080"></line><line x1="672" y1="990" x2="672" y2="1080"></line><line x1="768" y1="990" x2="768" y2="1080"></line><line x1="864" y1="990" x2="864" y2="1080"></line><line x1="960" y1="990" x2="960" y2="1080"></line><line x1="1056" y1="990" x2="1056" y2="1080"></line><line x1="1152" y1="990" x2="1152" y2="1080"></line><line x1="1248" y1="990" x2="1248" y2="1080"></line><line x1="1344" y1="990" x2="1344" y2="1080"></line><line x1="1440" y1="990" x2="1440" y2="1080"></line><line x1="1536" y1="990" x2="1536" y2="1080"></line><line x1="1632" y1="990" x2="1632" y2="1080"></line><line x1="1728" y1="990" x2="1728" y2="1080"></line><line x1="1824" y1="990" x2="1824" y2="1080"></line>
+        </g>
+        <circle cx="1360" cy="70" r="22" fill="#2A2B33"></circle>
+        <circle cx="1360" cy="70" r="16" fill="#3A3B45"></circle>
+        <circle cx="1360" cy="70" r="10" fill="#4A4B55"></circle>
+        <line x1="1360" y1="70" x2="1360" y2="560" stroke="#34353E" stroke-width="8"></line>
+        <line x1="1362" y1="72" x2="1362" y2="560" stroke="#4A4B55" stroke-width="2"></line>
+        <rect x="1355" y="140" width="10" height="18" rx="3" fill="#3A3B45"></rect>
+        <rect x="1355" y="250" width="10" height="18" rx="3" fill="#3A3B45"></rect>
+        <rect x="1355" y="360" width="10" height="18" rx="3" fill="#3A3B45"></rect>
+        <rect x="1355" y="470" width="10" height="18" rx="3" fill="#3A3B45"></rect>
+        <path d="M 1320 590 L 1360 545 L 1400 590" stroke="#34353E" stroke-width="10" fill="none"></path>
+        <rect x="1283" y="580" width="154" height="330" rx="38" fill="url(#rBagGrad)"></rect>
+        <g stroke="rgba(0,0,0,0.35)" stroke-width="2">
+          <line x1="1293" y1="640" x2="1427" y2="640"></line>
+          <line x1="1293" y1="700" x2="1427" y2="700"></line>
+          <line x1="1293" y1="760" x2="1427" y2="760"></line>
+          <line x1="1293" y1="820" x2="1427" y2="820"></line>
+          <line x1="1293" y1="880" x2="1427" y2="880"></line>
+        </g>
+        <ellipse cx="1320" cy="740" rx="22" ry="120" fill="rgba(255,255,255,0.06)"></ellipse>
+        <text x="1360" y="758" text-anchor="middle" font-family="'Bebas Neue','Arial Narrow',sans-serif" font-size="42" letter-spacing="8" fill="rgba(240,195,48,0.75)">HEAVY</text>
+        <ellipse cx="1360" cy="1000" rx="140" ry="18" fill="rgba(0,0,0,0.45)"></ellipse>
+        <ellipse cx="646" cy="992" rx="110" ry="14" fill="rgba(0,0,0,0.45)"></ellipse>
+        <use href="#rPlayer" transform="translate(556,706) scale(2.25)"></use>
+      </g>
+    </defs>
+  </svg>
+
+  <div style="color:#9BA0A8; font-size:15px; max-width:960px; line-height:1.5;">
+    <div style="color:#E8EAED; font-size:20px; font-weight:700; margin-bottom:6px;">Heavy Bag Training — modernized UI (1920×1080)</div>
+    Redesign of every game state, all 7 attacks included. Type: Bebas Neue + Barlow; palette refined from the game's gold/red/green/blue. Current UI recreation: <a href="Current UI Recreation.dc.html" style="color:#F0C330;">Current UI Recreation.dc.html</a>. HUD state (backdrop, combo, in-range) is tweakable.
+  </div>
+
+  <div style="display:flex; flex-wrap:wrap; gap:56px; align-items:flex-start;">
+
+    <!-- ============ 1a MAIN MENU ============ -->
+    <div id="1a">
+      <div style="color:#9BA0A8; font-size:13px; font-weight:700; margin-bottom:8px;"><a href="#1a" style="color:#F0C330; text-decoration:none;">1a</a> · Main Menu</div>
+      <div style="width:1920px; height:1080px; position:relative; background:#0B0C10; overflow:hidden; flex-shrink:0;" data-screen-label="Menu — redesign">
+        <svg viewBox="0 0 1920 1080" width="1920" height="1080" style="position:absolute; inset:0; display:block; opacity:0.5;"><use href="#rScene"></use></svg>
+        <div style="position:absolute; inset:0; background:linear-gradient(90deg, rgba(8,9,12,0.94) 0%, rgba(8,9,12,0.72) 50%, rgba(8,9,12,0.25) 100%);"></div>
+        <div style="position:absolute; left:160px; top:50%; transform:translateY(-50%); display:flex; flex-direction:column; gap:0;">
+          <div style="display:flex;"><div style="border:1px solid rgba(240,195,48,0.5); color:#F0C330; font-size:17px; font-weight:600; letter-spacing:0.32em; padding:8px 18px 8px 22px; white-space:nowrap;">PRO EDITION</div></div>
+          <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:190px; line-height:0.9; color:#F2F3F5; margin-top:28px;">HEAVY BAG</div>
+          <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:190px; line-height:0.9; color:#F0C330;">TRAINING</div>
+          <div style="display:flex; flex-direction:column; margin-top:56px; width:480px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 24px; background:rgba(240,195,48,0.08); border-left:4px solid #F0C330;">
+              <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:42px; color:#F0C330; letter-spacing:0.05em;">START GAME</div>
+              <div style="font-size:20px; color:rgba(240,195,48,0.7); font-weight:600;">↵</div>
+            </div>
+            <div style="display:flex; align-items:center; padding:16px 24px 16px 28px;"><div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:42px; color:rgba(235,237,240,0.55); letter-spacing:0.05em;">TUTORIAL</div></div>
+            <div style="display:flex; align-items:center; padding:16px 24px 16px 28px;"><div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:42px; color:rgba(235,237,240,0.55); letter-spacing:0.05em;">SETTINGS</div></div>
+            <div style="display:flex; align-items:center; padding:16px 24px 16px 28px;"><div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:42px; color:rgba(235,237,240,0.55); letter-spacing:0.05em;">QUIT</div></div>
+          </div>
+        </div>
+        <div style="position:absolute; right:140px; bottom:120px; display:flex; gap:64px; text-align:right;">
+          <div>
+            <div style="font-size:16px; font-weight:600; letter-spacing:0.25em; color:rgba(235,237,240,0.45);">BEST SCORE</div>
+            <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:64px; color:#F0C330; line-height:1.1;">3,580</div>
+          </div>
+          <div>
+            <div style="font-size:16px; font-weight:600; letter-spacing:0.25em; color:rgba(235,237,240,0.45);">TOTAL PUNCHES</div>
+            <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:64px; color:#F2F3F5; line-height:1.1;">8,214</div>
+          </div>
+          <div>
+            <div style="font-size:16px; font-weight:600; letter-spacing:0.25em; color:rgba(235,237,240,0.45);">BEST COMBO</div>
+            <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:64px; color:#F2F3F5; line-height:1.1;">15×</div>
+          </div>
+        </div>
+        <div style="position:absolute; left:160px; bottom:64px; display:flex; gap:28px; align-items:center; color:rgba(235,237,240,0.45); font-size:17px; font-weight:500;">
+          <div style="display:flex; gap:10px; align-items:center;"><span style="border:1px solid rgba(255,255,255,0.25); border-radius:6px; padding:4px 10px; font-weight:600; color:rgba(235,237,240,0.7);">↑</span><span style="border:1px solid rgba(255,255,255,0.25); border-radius:6px; padding:4px 10px; font-weight:600; color:rgba(235,237,240,0.7);">↓</span> NAVIGATE</div>
+          <div style="display:flex; gap:10px; align-items:center;"><span style="border:1px solid rgba(255,255,255,0.25); border-radius:6px; padding:4px 12px; font-weight:600; color:rgba(235,237,240,0.7);">ENTER</span> SELECT</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 1b HUD — FULL ============ -->
+    <div id="1b">
+      <div style="color:#9BA0A8; font-size:13px; font-weight:700; margin-bottom:8px;"><a href="#1b" style="color:#F0C330; text-decoration:none;">1b</a> · Gameplay HUD — full dashboard</div>
+      <div style="width:1920px; height:1080px; position:relative; background:#0B0C10; overflow:hidden; flex-shrink:0;" data-screen-label="HUD full — redesign">
+        <sc-if value="{{ backdrop }}" hint-placeholder-val="{{ true }}">
+          <svg viewBox="0 0 1920 1080" width="1920" height="1080" style="position:absolute; inset:0; display:block;"><use href="#rScene"></use></svg>
+        </sc-if>
+        <sc-if value="{{ inRange }}" hint-placeholder-val="{{ true }}">
+          <div style="position:absolute; left:1180px; top:900px; width:360px; height:180px; background:linear-gradient(to top, rgba(69,212,131,0.22), rgba(69,212,131,0)); border-bottom:3px solid #45D483; animation:zoneGlow 1.6s ease-in-out infinite;"></div>
+          <div style="position:absolute; left:1360px; top:940px; transform:translateX(-50%); display:flex; align-items:center; gap:10px; background:rgba(10,20,14,0.75); border:1px solid rgba(69,212,131,0.6); padding:8px 18px; backdrop-filter:blur(8px);">
+            <div style="width:8px; height:8px; border-radius:50%; background:#45D483;"></div>
+            <div style="font-size:18px; font-weight:700; letter-spacing:0.22em; color:#45D483;">IN RANGE</div>
+          </div>
+        </sc-if>
+
+        <div style="position:absolute; left:80px; top:56px;">
+          <div style="font-size:17px; font-weight:600; letter-spacing:0.28em; color:rgba(235,237,240,0.5);">SCORE</div>
+          <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:96px; line-height:1; color:#F2F3F5; margin-top:4px;">1,240</div>
+          <div style="display:flex; gap:10px; align-items:baseline; margin-top:8px;">
+            <div style="font-size:15px; font-weight:600; letter-spacing:0.22em; color:rgba(240,195,48,0.7);">BEST</div>
+            <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:32px; color:#F0C330;">3,580</div>
+          </div>
+        </div>
+
+        <div style="position:absolute; left:960px; top:48px; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center;">
+          <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:110px; line-height:1; color:#F2F3F5;">02:17</div>
+          <div style="width:360px; height:4px; background:rgba(255,255,255,0.12); margin-top:10px;"><div style="width:24%; height:4px; background:#F0C330;"></div></div>
+          <div style="font-size:15px; font-weight:600; letter-spacing:0.3em; color:rgba(235,237,240,0.45); margin-top:10px;">TRAINING ROUND — 3:00</div>
+        </div>
+
+        <div style="position:absolute; right:80px; top:64px; width:360px; display:flex; flex-direction:column; gap:22px; background:rgba(13,14,17,0.66); border:1px solid rgba(255,255,255,0.08); padding:22px 24px; backdrop-filter:blur(10px);">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:baseline;">
+              <div style="font-size:15px; font-weight:600; letter-spacing:0.26em; color:rgba(235,237,240,0.55);">STAMINA</div>
+              <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:28px; color:#45D483;">62</div>
+            </div>
+            <div style="height:10px; background:rgba(255,255,255,0.08); margin-top:8px; position:relative;">
+              <div style="width:62%; height:10px; background:#45D483;"></div>
+              <div style="position:absolute; inset:0; background:repeating-linear-gradient(90deg, transparent 0 30.2px, #0D0E11 30.2px 32.2px);"></div>
+            </div>
+          </div>
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:baseline;">
+              <div style="font-size:15px; font-weight:600; letter-spacing:0.26em; color:rgba(235,237,240,0.55);">POWER</div>
+              <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:28px; color:#3D7BFF;">45</div>
+            </div>
+            <div style="height:10px; background:rgba(255,255,255,0.08); margin-top:8px; position:relative;">
+              <div style="width:45%; height:10px; background:#3D7BFF;"></div>
+              <div style="position:absolute; inset:0; background:repeating-linear-gradient(90deg, transparent 0 30.2px, #0D0E11 30.2px 32.2px);"></div>
+            </div>
+            <div style="font-size:13px; font-weight:600; letter-spacing:0.2em; color:rgba(235,237,240,0.35); margin-top:8px;">SPACE UNLOCKS SPECIAL AT 100</div>
+          </div>
+        </div>
+
+        <sc-if value="{{ showCombo }}" hint-placeholder-val="{{ true }}">
+          <div style="position:absolute; left:960px; top:400px; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center;">
+            <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:200px; line-height:0.9; color:#F0C330; text-shadow:0 8px 40px rgba(240,195,48,0.35);">6×</div>
+            <div style="font-size:22px; font-weight:700; letter-spacing:0.42em; color:rgba(240,195,48,0.85); margin-top:6px; margin-left:0.42em;">COMBO</div>
+            <div style="margin-top:14px; background:rgba(240,195,48,0.12); border:1px solid rgba(240,195,48,0.5); color:#F0C330; font-size:16px; font-weight:700; letter-spacing:0.3em; padding:6px 16px 6px 20px;">AMAZING</div>
+          </div>
+          <div style="position:absolute; left:1360px; top:430px; transform:translateX(-50%); font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:64px; color:#F0C330; text-shadow:0 4px 24px rgba(240,195,48,0.4);">+82</div>
+        </sc-if>
+
+        <div style="position:absolute; left:80px; bottom:64px; background:rgba(13,14,17,0.7); border:1px solid rgba(255,255,255,0.08); backdrop-filter:blur(10px); padding:24px 28px; display:flex; gap:44px;">
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <div style="font-size:14px; font-weight:700; letter-spacing:0.3em; color:#F0C330;">PUNCHES</div>
+            <div style="display:flex; align-items:center; gap:14px;"><div style="width:38px; height:38px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.25); border-radius:6px; background:rgba(255,255,255,0.05); font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:22px; color:#F2F3F5;">Z</div><div style="width:118px; font-size:18px; font-weight:600; color:rgba(235,237,240,0.85);">Jab</div><div style="font-size:15px; font-weight:600; color:#45D483;">-5</div></div>
+            <div style="display:flex; align-items:center; gap:14px;"><div style="width:38px; height:38px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.25); border-radius:6px; background:rgba(255,255,255,0.05); font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:22px; color:#F2F3F5;">X</div><div style="width:118px; font-size:18px; font-weight:600; color:rgba(235,237,240,0.85);">Cross</div><div style="font-size:15px; font-weight:600; color:#45D483;">-8</div></div>
+            <div style="display:flex; align-items:center; gap:14px;"><div style="width:38px; height:38px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.25); border-radius:6px; background:rgba(255,255,255,0.05); font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:22px; color:#F2F3F5;">C</div><div style="width:118px; font-size:18px; font-weight:600; color:rgba(235,237,240,0.85);">Hook</div><div style="font-size:15px; font-weight:600; color:#45D483;">-10</div></div>
+            <div style="display:flex; align-items:center; gap:14px;"><div style="width:38px; height:38px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.25); border-radius:6px; background:rgba(255,255,255,0.05); font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:22px; color:#F2F3F5;">V</div><div style="width:118px; font-size:18px; font-weight:600; color:rgba(235,237,240,0.85);">Uppercut</div><div style="font-size:15px; font-weight:600; color:#45D483;">-12</div></div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <div style="font-size:14px; font-weight:700; letter-spacing:0.3em; color:#F0C330;">KICKS</div>
+            <div style="display:flex; align-items:center; gap:14px;"><div style="width:38px; height:38px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.25); border-radius:6px; background:rgba(255,255,255,0.05); font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:22px; color:#F2F3F5;">Q</div><div style="width:138px; font-size:18px; font-weight:600; color:rgba(235,237,240,0.85);">Front Kick</div><div style="font-size:15px; font-weight:600; color:#45D483;">-15</div></div>
+            <div style="display:flex; align-items:center; gap:14px;"><div style="width:38px; height:38px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.25); border-radius:6px; background:rgba(255,255,255,0.05); font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:22px; color:#F2F3F5;">W</div><div style="width:138px; font-size:18px; font-weight:600; color:rgba(235,237,240,0.85);">Roundhouse</div><div style="font-size:15px; font-weight:600; color:#45D483;">-18</div></div>
+            <div style="display:flex; align-items:center; gap:14px;"><div style="width:38px; height:38px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.25); border-radius:6px; background:rgba(255,255,255,0.05); font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:22px; color:#F2F3F5;">E</div><div style="width:138px; font-size:18px; font-weight:600; color:rgba(235,237,240,0.85);">Low Kick</div><div style="font-size:15px; font-weight:600; color:#45D483;">-12</div></div>
+            <div style="display:flex; align-items:center; gap:14px; margin-top:2px;"><div style="height:38px; padding:0 14px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(240,195,48,0.6); border-radius:6px; background:rgba(240,195,48,0.08); font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:20px; color:#F0C330;">SPACE</div><div style="font-size:18px; font-weight:600; color:#F0C330;">Special</div></div>
+          </div>
+        </div>
+
+        <div style="position:absolute; right:80px; bottom:64px; display:flex; align-items:center; gap:12px; background:rgba(13,14,17,0.66); border:1px solid rgba(255,255,255,0.08); padding:12px 18px; backdrop-filter:blur(10px);">
+          <div style="font-size:14px; font-weight:600; letter-spacing:0.24em; color:rgba(235,237,240,0.5);">BAG</div>
+          <div style="width:120px; height:6px; background:rgba(255,255,255,0.1);"><div style="width:35%; height:6px; background:#F5D90A;"></div></div>
+          <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:24px; color:#F5D90A;">35%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 1c HUD — MINIMAL ============ -->
+    <div id="1c">
+      <div style="color:#9BA0A8; font-size:13px; font-weight:700; margin-bottom:8px;"><a href="#1c" style="color:#F0C330; text-decoration:none;">1c</a> · Gameplay HUD — minimal / immersive</div>
+      <div style="width:1920px; height:1080px; position:relative; background:#0B0C10; overflow:hidden; flex-shrink:0;" data-screen-label="HUD minimal — redesign">
+        <sc-if value="{{ backdrop }}" hint-placeholder-val="{{ true }}">
+          <svg viewBox="0 0 1920 1080" width="1920" height="1080" style="position:absolute; inset:0; display:block;"><use href="#rScene"></use></svg>
+        </sc-if>
+        <sc-if value="{{ inRange }}" hint-placeholder-val="{{ true }}">
+          <div style="position:absolute; left:1180px; top:960px; width:360px; height:120px; background:linear-gradient(to top, rgba(69,212,131,0.18), rgba(69,212,131,0)); border-bottom:2px solid #45D483; animation:zoneGlow 1.6s ease-in-out infinite;"></div>
+        </sc-if>
+        <div style="position:absolute; left:72px; top:56px; display:flex; align-items:baseline; gap:14px;">
+          <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:56px; line-height:1; color:#F2F3F5;">1,240</div>
+          <div style="font-size:14px; font-weight:600; letter-spacing:0.2em; color:rgba(240,195,48,0.75);">BEST 3,580</div>
+        </div>
+        <div style="position:absolute; left:960px; top:52px; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center;">
+          <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:64px; line-height:1; color:#F2F3F5;">02:17</div>
+          <div style="width:200px; height:2px; background:rgba(255,255,255,0.14); margin-top:8px;"><div style="width:24%; height:2px; background:#F0C330;"></div></div>
+        </div>
+        <sc-if value="{{ showCombo }}" hint-placeholder-val="{{ true }}">
+          <div style="position:absolute; left:960px; top:420px; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center;">
+            <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:160px; line-height:0.9; color:#F0C330; text-shadow:0 8px 40px rgba(240,195,48,0.3);">6×</div>
+            <div style="font-size:18px; font-weight:700; letter-spacing:0.4em; color:rgba(240,195,48,0.75); margin-left:0.4em;">COMBO</div>
+          </div>
+        </sc-if>
+        <div style="position:absolute; left:960px; bottom:56px; transform:translateX(-50%); display:flex; flex-direction:column; gap:8px; width:420px;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:34px; font-size:13px; font-weight:700; letter-spacing:0.14em; color:rgba(235,237,240,0.5);">STA</div>
+            <div style="flex:1; height:6px; background:rgba(255,255,255,0.1);"><div style="width:62%; height:6px; background:#45D483;"></div></div>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:34px; font-size:13px; font-weight:700; letter-spacing:0.14em; color:rgba(235,237,240,0.5);">PWR</div>
+            <div style="flex:1; height:6px; background:rgba(255,255,255,0.1);"><div style="width:45%; height:6px; background:#3D7BFF;"></div></div>
+          </div>
+        </div>
+        <div style="position:absolute; right:72px; bottom:56px; font-size:15px; font-weight:500; color:rgba(235,237,240,0.4); letter-spacing:0.06em;">Z X C V punches &nbsp;·&nbsp; Q W E kicks &nbsp;·&nbsp; SPACE special &nbsp;·&nbsp; ESC pause</div>
+      </div>
+    </div>
+
+    <!-- ============ 1d PAUSE ============ -->
+    <div id="1d">
+      <div style="color:#9BA0A8; font-size:13px; font-weight:700; margin-bottom:8px;"><a href="#1d" style="color:#F0C330; text-decoration:none;">1d</a> · Pause</div>
+      <div style="width:1920px; height:1080px; position:relative; background:#0B0C10; overflow:hidden; flex-shrink:0;" data-screen-label="Pause — redesign">
+        <svg viewBox="0 0 1920 1080" width="1920" height="1080" style="position:absolute; inset:0; display:block;"><use href="#rScene"></use></svg>
+        <div style="position:absolute; inset:0; background:rgba(8,9,12,0.85); backdrop-filter:blur(10px);"></div>
+        <div style="position:absolute; left:200px; top:50%; transform:translateY(-50%);">
+          <div style="font-size:17px; font-weight:600; letter-spacing:0.32em; color:rgba(235,237,240,0.4);">TRAINING ROUND — 02:17 LEFT</div>
+          <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:220px; line-height:0.95; color:#F2F3F5; margin-top:12px;">PAUSED</div>
+          <div style="display:flex; flex-direction:column; margin-top:48px; width:520px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:18px 26px; background:rgba(240,195,48,0.08); border-left:4px solid #F0C330;">
+              <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:44px; color:#F0C330; letter-spacing:0.05em;">RESUME</div>
+              <div style="border:1px solid rgba(240,195,48,0.5); border-radius:6px; padding:4px 12px; font-size:16px; font-weight:600; color:rgba(240,195,48,0.85);">ESC</div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:18px 26px 18px 30px;">
+              <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:44px; color:rgba(235,237,240,0.55); letter-spacing:0.05em;">QUIT TO MENU</div>
+              <div style="border:1px solid rgba(255,255,255,0.22); border-radius:6px; padding:4px 12px; font-size:16px; font-weight:600; color:rgba(235,237,240,0.5);">Q</div>
+            </div>
+          </div>
+        </div>
+        <div style="position:absolute; right:200px; top:50%; transform:translateY(-50%); width:380px; background:rgba(13,14,17,0.8); border:1px solid rgba(255,255,255,0.08); padding:32px 36px; display:flex; flex-direction:column; gap:24px;">
+          <div style="font-size:15px; font-weight:700; letter-spacing:0.3em; color:rgba(235,237,240,0.5);">THIS SESSION</div>
+          <div style="display:flex; justify-content:space-between; align-items:baseline;"><div style="font-size:17px; font-weight:500; color:rgba(235,237,240,0.6);">Score</div><div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:44px; color:#F2F3F5;">1,240</div></div>
+          <div style="display:flex; justify-content:space-between; align-items:baseline;"><div style="font-size:17px; font-weight:500; color:rgba(235,237,240,0.6);">Best combo</div><div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:44px; color:#F0C330;">9×</div></div>
+          <div style="display:flex; justify-content:space-between; align-items:baseline;"><div style="font-size:17px; font-weight:500; color:rgba(235,237,240,0.6);">Punches thrown</div><div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:44px; color:#F2F3F5;">63</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 1e ROUND COMPLETE ============ -->
+    <div id="1e">
+      <div style="color:#9BA0A8; font-size:13px; font-weight:700; margin-bottom:8px;"><a href="#1e" style="color:#F0C330; text-decoration:none;">1e</a> · Round Complete</div>
+      <div style="width:1920px; height:1080px; position:relative; background:#0B0C10; overflow:hidden; flex-shrink:0;" data-screen-label="Round Complete — redesign">
+        <div style="position:absolute; inset:0; background:radial-gradient(700px 420px at 50% 0%, rgba(240,195,48,0.14), rgba(240,195,48,0));"></div>
+        <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0;">
+          <div style="font-size:18px; font-weight:600; letter-spacing:0.36em; color:rgba(235,237,240,0.45);">TRAINING SESSION — 3:00</div>
+          <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:130px; line-height:1; color:#F0C330; margin-top:14px;">ROUND COMPLETE</div>
+          <div style="font-size:17px; font-weight:600; letter-spacing:0.3em; color:rgba(235,237,240,0.45); margin-top:52px;">FINAL SCORE</div>
+          <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:250px; line-height:0.95; color:#F2F3F5;">1,240</div>
+          <div style="display:flex; gap:24px; margin-top:56px;">
+            <div style="width:300px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.03); padding:26px 30px;">
+              <div style="font-size:15px; font-weight:600; letter-spacing:0.26em; color:rgba(235,237,240,0.45);">BEST COMBO</div>
+              <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:72px; line-height:1.05; color:#F0C330;">12×</div>
+            </div>
+            <div style="width:300px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.03); padding:26px 30px;">
+              <div style="font-size:15px; font-weight:600; letter-spacing:0.26em; color:rgba(235,237,240,0.45);">TOTAL PUNCHES</div>
+              <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:72px; line-height:1.05; color:#F2F3F5;">187</div>
+            </div>
+            <div style="width:300px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.03); padding:26px 30px;">
+              <div style="font-size:15px; font-weight:600; letter-spacing:0.26em; color:rgba(235,237,240,0.45);">HIGH SCORE</div>
+              <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:72px; line-height:1.05; color:#F2F3F5;">3,580</div>
+            </div>
+          </div>
+          <div style="font-size:16px; font-weight:500; letter-spacing:0.14em; color:rgba(235,237,240,0.4); margin-top:40px;">ALL-TIME &nbsp;·&nbsp; 8,214 TOTAL PUNCHES &nbsp;·&nbsp; 15× BEST COMBO</div>
+          <div style="display:flex; gap:32px; margin-top:56px; align-items:center;">
+            <div style="display:flex; gap:12px; align-items:center; color:rgba(235,237,240,0.6); font-size:17px; font-weight:500;"><span style="border:1px solid rgba(255,255,255,0.25); border-radius:6px; padding:5px 14px; font-weight:600; color:rgba(235,237,240,0.8);">ENTER</span> Menu</div>
+            <div style="display:flex; gap:12px; align-items:center; color:rgba(235,237,240,0.6); font-size:17px; font-weight:500;"><span style="border:1px solid rgba(255,255,255,0.25); border-radius:6px; padding:5px 14px; font-weight:600; color:rgba(235,237,240,0.8);">R</span> Restart</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 1f SETTINGS ============ -->
+    <div id="1f">
+      <div style="color:#9BA0A8; font-size:13px; font-weight:700; margin-bottom:8px;"><a href="#1f" style="color:#F0C330; text-decoration:none;">1f</a> · Settings (new — unimplemented in game)</div>
+      <div style="width:1920px; height:1080px; position:relative; background:#0B0C10; overflow:hidden; flex-shrink:0; padding:0;" data-screen-label="Settings — redesign">
+        <div style="position:absolute; left:160px; top:96px; right:160px;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+            <div>
+              <div style="font-size:17px; font-weight:600; letter-spacing:0.32em; color:rgba(240,195,48,0.75);">PRO EDITION</div>
+              <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:110px; line-height:1; color:#F2F3F5; margin-top:6px;">SETTINGS</div>
+            </div>
+            <div style="display:flex; gap:12px; align-items:center; color:rgba(235,237,240,0.5); font-size:17px; font-weight:500; padding-bottom:14px;"><span style="border:1px solid rgba(255,255,255,0.25); border-radius:6px; padding:5px 14px; font-weight:600; color:rgba(235,237,240,0.75);">ESC</span> Back to menu</div>
+          </div>
+
+          <div style="font-size:16px; font-weight:700; letter-spacing:0.3em; color:rgba(235,237,240,0.5); margin-top:64px;">DIFFICULTY</div>
+          <div style="display:flex; gap:20px; margin-top:20px;">
+            <div style="flex:1; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.03); padding:26px 28px;">
+              <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:48px; color:rgba(235,237,240,0.85); line-height:1;">EASY</div>
+              <div style="font-size:16px; font-weight:500; color:rgba(235,237,240,0.5); margin-top:10px;">Forgiving bag physics</div>
+              <div style="font-size:15px; font-weight:600; color:#45D483; margin-top:16px;">+0.5 stamina /s</div>
+            </div>
+            <div style="flex:1; border:1px solid #F0C330; background:rgba(240,195,48,0.07); padding:26px 28px; position:relative;">
+              <div style="position:absolute; top:-1px; right:-1px; background:#F0C330; color:#141308; font-size:13px; font-weight:700; letter-spacing:0.18em; padding:5px 12px;">SELECTED</div>
+              <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:48px; color:#F0C330; line-height:1;">NORMAL</div>
+              <div style="font-size:16px; font-weight:500; color:rgba(235,237,240,0.6); margin-top:10px;">Balanced training</div>
+              <div style="font-size:15px; font-weight:600; color:#45D483; margin-top:16px;">+0.3 stamina /s</div>
+            </div>
+            <div style="flex:1; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.03); padding:26px 28px;">
+              <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:48px; color:rgba(235,237,240,0.85); line-height:1;">HARD</div>
+              <div style="font-size:16px; font-weight:500; color:rgba(235,237,240,0.5); margin-top:10px;">Lively, restless bag</div>
+              <div style="font-size:15px; font-weight:600; color:#45D483; margin-top:16px;">+0.2 stamina /s</div>
+            </div>
+            <div style="flex:1; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.03); padding:26px 28px;">
+              <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:48px; color:rgba(235,237,240,0.85); line-height:1;">EXPERT</div>
+              <div style="font-size:16px; font-weight:500; color:rgba(235,237,240,0.5); margin-top:10px;">Maximum challenge</div>
+              <div style="font-size:15px; font-weight:600; color:#45D483; margin-top:16px;">+0.1 stamina /s</div>
+            </div>
+          </div>
+
+          <div style="font-size:16px; font-weight:700; letter-spacing:0.3em; color:rgba(235,237,240,0.5); margin-top:64px;">GAME</div>
+          <div style="display:flex; flex-direction:column; margin-top:20px; width:840px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:22px 26px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.03);">
+              <div><div style="font-size:22px; font-weight:600; color:#F2F3F5;">Sound</div><div style="font-size:16px; color:rgba(235,237,240,0.45); margin-top:2px;">Game audio and hit effects</div></div>
+              <div style="width:58px; height:30px; border-radius:15px; background:#F0C330; position:relative;"><div style="position:absolute; top:3px; right:3px; width:24px; height:24px; border-radius:50%; background:#141308;"></div></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:22px 26px; border:1px solid rgba(255,255,255,0.1); border-top:none; background:rgba(255,255,255,0.03);">
+              <div><div style="font-size:22px; font-weight:600; color:#F2F3F5;">Particle effects</div><div style="font-size:16px; color:rgba(235,237,240,0.45); margin-top:2px;">Impact sparks, sweat and energy bursts</div></div>
+              <div style="width:58px; height:30px; border-radius:15px; background:#F0C330; position:relative;"><div style="position:absolute; top:3px; right:3px; width:24px; height:24px; border-radius:50%; background:#141308;"></div></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:22px 26px; border:1px solid rgba(255,255,255,0.1); border-top:none; background:rgba(255,255,255,0.03);">
+              <div><div style="font-size:22px; font-weight:600; color:#F2F3F5;">FPS counter</div><div style="font-size:16px; color:rgba(235,237,240,0.45); margin-top:2px;">Show frame rate while playing</div></div>
+              <div style="width:58px; height:30px; border-radius:15px; background:rgba(255,255,255,0.14); position:relative;"><div style="position:absolute; top:3px; left:3px; width:24px; height:24px; border-radius:50%; background:rgba(235,237,240,0.6);"></div></div>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:28px; margin-top:56px; color:rgba(235,237,240,0.45); font-size:17px; font-weight:500; align-items:center;">
+            <div style="display:flex; gap:10px; align-items:center;"><span style="border:1px solid rgba(255,255,255,0.25); border-radius:6px; padding:4px 10px; font-weight:600; color:rgba(235,237,240,0.7);">↑</span><span style="border:1px solid rgba(255,255,255,0.25); border-radius:6px; padding:4px 10px; font-weight:600; color:rgba(235,237,240,0.7);">↓</span> Navigate</div>
+            <div style="display:flex; gap:10px; align-items:center;"><span style="border:1px solid rgba(255,255,255,0.25); border-radius:6px; padding:4px 10px; font-weight:600; color:rgba(235,237,240,0.7);">←</span><span style="border:1px solid rgba(255,255,255,0.25); border-radius:6px; padding:4px 10px; font-weight:600; color:rgba(235,237,240,0.7);">→</span> Adjust</div>
+            <div style="display:flex; gap:10px; align-items:center;"><span style="border:1px solid rgba(255,255,255,0.25); border-radius:6px; padding:4px 12px; font-weight:600; color:rgba(235,237,240,0.7);">ENTER</span> Toggle</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 1g TUTORIAL ============ -->
+    <div id="1g">
+      <div style="color:#9BA0A8; font-size:13px; font-weight:700; margin-bottom:8px;"><a href="#1g" style="color:#F0C330; text-decoration:none;">1g</a> · Tutorial / Move List (new — unimplemented in game)</div>
+      <div style="width:1920px; height:1080px; position:relative; background:#0B0C10; overflow:hidden; flex-shrink:0;" data-screen-label="Tutorial — redesign">
+        <div style="position:absolute; left:160px; top:88px; right:160px;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+            <div>
+              <div style="font-size:17px; font-weight:600; letter-spacing:0.32em; color:rgba(240,195,48,0.75);">TUTORIAL</div>
+              <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:110px; line-height:1; color:#F2F3F5; margin-top:6px;">MOVE LIST</div>
+            </div>
+            <div style="display:flex; gap:12px; align-items:center; color:rgba(235,237,240,0.5); font-size:17px; font-weight:500; padding-bottom:14px;"><span style="border:1px solid rgba(255,255,255,0.25); border-radius:6px; padding:5px 14px; font-weight:600; color:rgba(235,237,240,0.75);">ESC</span> Back to menu</div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:18px; margin-top:48px;">
+            <div style="border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.03); padding:22px 24px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;"><div style="width:44px; height:44px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.28); border-radius:8px; background:rgba(255,255,255,0.05); font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:26px; color:#F2F3F5;">Z</div><div style="font-size:14px; font-weight:700; color:#45D483;">-5 STA</div></div>
+              <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:44px; color:#F2F3F5; margin-top:16px; line-height:1;">JAB</div>
+              <div style="font-size:15px; color:rgba(235,237,240,0.45); margin-top:4px;">Quick, low stamina</div>
+              <div style="display:flex; align-items:center; gap:10px; margin-top:18px;"><div style="width:52px; font-size:13px; font-weight:600; letter-spacing:0.1em; color:rgba(235,237,240,0.45);">REACH</div><div style="flex:1; height:5px; background:rgba(255,255,255,0.1);"><div style="width:70%; height:5px; background:rgba(235,237,240,0.7);"></div></div></div>
+              <div style="display:flex; align-items:center; gap:10px; margin-top:8px;"><div style="width:52px; font-size:13px; font-weight:600; letter-spacing:0.1em; color:rgba(235,237,240,0.45);">FORCE</div><div style="flex:1; height:5px; background:rgba(255,255,255,0.1);"><div style="width:40%; height:5px; background:#F0C330;"></div></div></div>
+            </div>
+            <div style="border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.03); padding:22px 24px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;"><div style="width:44px; height:44px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.28); border-radius:8px; background:rgba(255,255,255,0.05); font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:26px; color:#F2F3F5;">X</div><div style="font-size:14px; font-weight:700; color:#45D483;">-8 STA</div></div>
+              <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:44px; color:#F2F3F5; margin-top:16px; line-height:1;">CROSS</div>
+              <div style="font-size:15px; color:rgba(235,237,240,0.45); margin-top:4px;">Strong, medium stamina</div>
+              <div style="display:flex; align-items:center; gap:10px; margin-top:18px;"><div style="width:52px; font-size:13px; font-weight:600; letter-spacing:0.1em; color:rgba(235,237,240,0.45);">REACH</div><div style="flex:1; height:5px; background:rgba(255,255,255,0.1);"><div style="width:80%; height:5px; background:rgba(235,237,240,0.7);"></div></div></div>
+              <div style="display:flex; align-items:center; gap:10px; margin-top:8px;"><div style="width:52px; font-size:13px; font-weight:600; letter-spacing:0.1em; color:rgba(235,237,240,0.45);">FORCE</div><div style="flex:1; height:5px; background:rgba(255,255,255,0.1);"><div style="width:60%; height:5px; background:#F0C330;"></div></div></div>
+            </div>
+            <div style="border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.03); padding:22px 24px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;"><div style="width:44px; height:44px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.28); border-radius:8px; background:rgba(255,255,255,0.05); font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:26px; color:#F2F3F5;">C</div><div style="font-size:14px; font-weight:700; color:#45D483;">-10 STA</div></div>
+              <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:44px; color:#F2F3F5; margin-top:16px; line-height:1;">HOOK</div>
+              <div style="font-size:15px; color:rgba(235,237,240,0.45); margin-top:4px;">Powerful, high stamina</div>
+              <div style="display:flex; align-items:center; gap:10px; margin-top:18px;"><div style="width:52px; font-size:13px; font-weight:600; letter-spacing:0.1em; color:rgba(235,237,240,0.45);">REACH</div><div style="flex:1; height:5px; background:rgba(255,255,255,0.1);"><div style="width:60%; height:5px; background:rgba(235,237,240,0.7);"></div></div></div>
+              <div style="display:flex; align-items:center; gap:10px; margin-top:8px;"><div style="width:52px; font-size:13px; font-weight:600; letter-spacing:0.1em; color:rgba(235,237,240,0.45);">FORCE</div><div style="flex:1; height:5px; background:rgba(255,255,255,0.1);"><div style="width:70%; height:5px; background:#F0C330;"></div></div></div>
+            </div>
+            <div style="border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.03); padding:22px 24px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;"><div style="width:44px; height:44px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.28); border-radius:8px; background:rgba(255,255,255,0.05); font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:26px; color:#F2F3F5;">V</div><div style="font-size:14px; font-weight:700; color:#45D483;">-12 STA</div></div>
+              <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:44px; color:#F2F3F5; margin-top:16px; line-height:1;">UPPERCUT</div>
+              <div style="font-size:15px; color:rgba(235,237,240,0.45); margin-top:4px;">Devastating, highest cost</div>
+              <div style="display:flex; align-items:center; gap:10px; margin-top:18px;"><div style="width:52px; font-size:13px; font-weight:600; letter-spacing:0.1em; color:rgba(235,237,240,0.45);">REACH</div><div style="flex:1; height:5px; background:rgba(255,255,255,0.1);"><div style="width:50%; height:5px; background:rgba(235,237,240,0.7);"></div></div></div>
+              <div style="display:flex; align-items:center; gap:10px; margin-top:8px;"><div style="width:52px; font-size:13px; font-weight:600; letter-spacing:0.1em; color:rgba(235,237,240,0.45);">FORCE</div><div style="flex:1; height:5px; background:rgba(255,255,255,0.1);"><div style="width:80%; height:5px; background:#F0C330;"></div></div></div>
+            </div>
+            <div style="border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.03); padding:22px 24px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;"><div style="width:44px; height:44px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.28); border-radius:8px; background:rgba(255,255,255,0.05); font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:26px; color:#F2F3F5;">Q</div><div style="font-size:14px; font-weight:700; color:#45D483;">-15 STA</div></div>
+              <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:44px; color:#F2F3F5; margin-top:16px; line-height:1;">FRONT KICK</div>
+              <div style="font-size:15px; color:rgba(235,237,240,0.45); margin-top:4px;">Longest reach</div>
+              <div style="display:flex; align-items:center; gap:10px; margin-top:18px;"><div style="width:52px; font-size:13px; font-weight:600; letter-spacing:0.1em; color:rgba(235,237,240,0.45);">REACH</div><div style="flex:1; height:5px; background:rgba(255,255,255,0.1);"><div style="width:100%; height:5px; background:rgba(235,237,240,0.7);"></div></div></div>
+              <div style="display:flex; align-items:center; gap:10px; margin-top:8px;"><div style="width:52px; font-size:13px; font-weight:600; letter-spacing:0.1em; color:rgba(235,237,240,0.45);">FORCE</div><div style="flex:1; height:5px; background:rgba(255,255,255,0.1);"><div style="width:90%; height:5px; background:#F0C330;"></div></div></div>
+            </div>
+            <div style="border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.03); padding:22px 24px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;"><div style="width:44px; height:44px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.28); border-radius:8px; background:rgba(255,255,255,0.05); font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:26px; color:#F2F3F5;">W</div><div style="font-size:14px; font-weight:700; color:#45D483;">-18 STA</div></div>
+              <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:44px; color:#F2F3F5; margin-top:16px; line-height:1;">ROUNDHOUSE</div>
+              <div style="font-size:15px; color:rgba(235,237,240,0.45); margin-top:4px;">Highest force</div>
+              <div style="display:flex; align-items:center; gap:10px; margin-top:18px;"><div style="width:52px; font-size:13px; font-weight:600; letter-spacing:0.1em; color:rgba(235,237,240,0.45);">REACH</div><div style="flex:1; height:5px; background:rgba(255,255,255,0.1);"><div style="width:90%; height:5px; background:rgba(235,237,240,0.7);"></div></div></div>
+              <div style="display:flex; align-items:center; gap:10px; margin-top:8px;"><div style="width:52px; font-size:13px; font-weight:600; letter-spacing:0.1em; color:rgba(235,237,240,0.45);">FORCE</div><div style="flex:1; height:5px; background:rgba(255,255,255,0.1);"><div style="width:100%; height:5px; background:#F0C330;"></div></div></div>
+            </div>
+            <div style="border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.03); padding:22px 24px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;"><div style="width:44px; height:44px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.28); border-radius:8px; background:rgba(255,255,255,0.05); font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:26px; color:#F2F3F5;">E</div><div style="font-size:14px; font-weight:700; color:#45D483;">-12 STA</div></div>
+              <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:44px; color:#F2F3F5; margin-top:16px; line-height:1;">LOW KICK</div>
+              <div style="font-size:15px; color:rgba(235,237,240,0.45); margin-top:4px;">Fast sweeping strike</div>
+              <div style="display:flex; align-items:center; gap:10px; margin-top:18px;"><div style="width:52px; font-size:13px; font-weight:600; letter-spacing:0.1em; color:rgba(235,237,240,0.45);">REACH</div><div style="flex:1; height:5px; background:rgba(255,255,255,0.1);"><div style="width:80%; height:5px; background:rgba(235,237,240,0.7);"></div></div></div>
+              <div style="display:flex; align-items:center; gap:10px; margin-top:8px;"><div style="width:52px; font-size:13px; font-weight:600; letter-spacing:0.1em; color:rgba(235,237,240,0.45);">FORCE</div><div style="flex:1; height:5px; background:rgba(255,255,255,0.1);"><div style="width:60%; height:5px; background:#F0C330;"></div></div></div>
+            </div>
+            <div style="border:1px solid rgba(240,195,48,0.55); background:rgba(240,195,48,0.06); padding:22px 24px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;"><div style="height:44px; padding:0 16px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(240,195,48,0.6); border-radius:8px; background:rgba(240,195,48,0.1); font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:24px; color:#F0C330;">SPACE</div><div style="font-size:14px; font-weight:700; color:#45D483;">-20 STA</div></div>
+              <div style="font-family:'Bebas Neue','Arial Narrow',sans-serif; font-size:44px; color:#F0C330; margin-top:16px; line-height:1;">SPECIAL</div>
+              <div style="font-size:15px; color:rgba(235,237,240,0.55); margin-top:4px;">Needs full power meter</div>
+              <div style="font-size:15px; font-weight:600; color:#F0C330; margin-top:20px;">+100 points, massive knockback</div>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:20px; margin-top:28px; align-items:stretch;">
+            <div style="flex:1.6; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.03); padding:22px 26px; display:flex; gap:44px;">
+              <div>
+                <div style="font-size:14px; font-weight:700; letter-spacing:0.28em; color:rgba(235,237,240,0.5);">SCORING</div>
+                <div style="display:flex; gap:36px; margin-top:14px;">
+                  <div><div style="font-size:19px; font-weight:700; color:#F0C330;">PERFECT +50</div><div style="font-size:15px; color:rgba(235,237,240,0.45); margin-top:2px;">Strike while the bag hangs steady</div></div>
+                  <div><div style="font-size:19px; font-weight:700; color:#F2F3F5;">COMBO +20%/hit</div><div style="font-size:15px; color:rgba(235,237,240,0.45); margin-top:2px;">Chain attacks within one second</div></div>
+                  <div><div style="font-size:19px; font-weight:700; color:#F2F3F5;">SPECIAL +100</div><div style="font-size:15px; color:rgba(235,237,240,0.45); margin-top:2px;">SPACE with a full power meter</div></div>
+                </div>
+              </div>
+            </div>
+            <div style="flex:1; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.03); padding:22px 26px;">
+              <div style="font-size:14px; font-weight:700; letter-spacing:0.28em; color:rgba(235,237,240,0.5);">POWER-UPS — WALK INTO THEM</div>
+              <div style="display:flex; gap:22px; margin-top:14px;">
+                <div style="display:flex; gap:8px; align-items:center;"><div style="width:12px; height:12px; border-radius:50%; background:#45D483;"></div><div style="font-size:16px; font-weight:600; color:rgba(235,237,240,0.75);">Stamina</div></div>
+                <div style="display:flex; gap:8px; align-items:center;"><div style="width:12px; height:12px; border-radius:50%; background:#3D7BFF;"></div><div style="font-size:16px; font-weight:600; color:rgba(235,237,240,0.75);">Power</div></div>
+                <div style="display:flex; gap:8px; align-items:center;"><div style="width:12px; height:12px; border-radius:50%; background:#F0C330;"></div><div style="font-size:16px; font-weight:600; color:rgba(235,237,240,0.75);">2× Multiplier</div></div>
+                <div style="display:flex; gap:8px; align-items:center;"><div style="width:12px; height:12px; border-radius:50%; background:#E5432E;"></div><div style="font-size:16px; font-weight:600; color:rgba(235,237,240,0.75);">Rage</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;backdrop&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;HUD state&quot;, &quot;description&quot;: &quot;Show the gym scene behind the HUD frames&quot; },
+  &quot;inRange&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;HUD state&quot;, &quot;description&quot;: &quot;Show the in-range zone indicator&quot; },
+  &quot;showCombo&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;HUD state&quot;, &quot;description&quot;: &quot;Show the combo counter and floating score&quot; }
+}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      backdrop: this.props.backdrop ?? true,
+      inRange: this.props.inRange ?? true,
+      showCombo: this.props.showCombo ?? true,
+    };
+  }
+}
+</script>
+</body>
+</html>
