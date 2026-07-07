@@ -69,7 +69,9 @@ class TutorialScreen:
         esc_rect = ui.draw_keycap(
             surface, (SCREEN_WIDTH - s(230), s(100)), "ESC", size=s(38)
         )
-        hint = get_font("barlow-medium", 18).render("Back to menu", True, theme.TEXT_DIM)
+        hint = get_font("barlow-medium", 18).render(
+            "Back to menu", True, theme.TEXT_DIM
+        )
         hint.set_alpha(theme.TEXT_DIM_ALPHA)
         surface.blit(hint, (esc_rect.right + s(14), s(100) - hint.get_height() // 2))
 
@@ -87,7 +89,10 @@ class TutorialScreen:
         for i, move in enumerate(cells):
             col, row = i % 4, i // 4
             rect = pygame.Rect(
-                left + col * (card_w + gap), grid_top + row * (card_h + gap), card_w, card_h
+                left + col * (card_w + gap),
+                grid_top + row * (card_h + gap),
+                card_w,
+                card_h,
             )
             if move is None:
                 self._special_card(surface, rect)
@@ -103,8 +108,12 @@ class TutorialScreen:
                 key,
                 size=cap_size,
             )
-            cost = font_cost.render(f"−{props.stamina_cost} STA", True, theme.STAMINA_GREEN)
-            surface.blit(cost, (rect.right - pad - cost.get_width(), rect.top + pad + s(8)))
+            cost = font_cost.render(
+                f"−{props.stamina_cost} STA", True, theme.STAMINA_GREEN
+            )
+            surface.blit(
+                cost, (rect.right - pad - cost.get_width(), rect.top + pad + s(8))
+            )
             name_surf = font_name.render(name.upper(), True, theme.TEXT_PRIMARY)
             surface.blit(name_surf, (rect.left + pad, rect.top + s(74)))
             desc_surf = font_desc.render(desc, True, theme.TEXT_DIM)
@@ -199,5 +208,7 @@ class TutorialScreen:
         line1 = font_desc.render("Needs full power meter", True, theme.TEXT_DIM)
         line1.set_alpha(theme.TEXT_DIM_ALPHA)
         surface.blit(line1, (rect.left + pad, rect.top + s(130)))
-        line2 = font_desc.render("+100 points, massive knockback", True, theme.TEXT_PRIMARY)
+        line2 = font_desc.render(
+            "+100 points, massive knockback", True, theme.TEXT_PRIMARY
+        )
         surface.blit(line2, (rect.left + pad, rect.top + s(156)))

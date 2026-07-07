@@ -23,10 +23,25 @@ from src.utils.fonts import get_font
 from src.game import ui
 
 _DIFFICULTIES = [
-    (Difficulty.EASY, "EASY", "Forgiving bag physics, quick recovery", PLAYER_STAMINA_REGEN_EASY),
-    (Difficulty.NORMAL, "NORMAL", "The intended training experience", PLAYER_STAMINA_REGEN_NORMAL),
+    (
+        Difficulty.EASY,
+        "EASY",
+        "Forgiving bag physics, quick recovery",
+        PLAYER_STAMINA_REGEN_EASY,
+    ),
+    (
+        Difficulty.NORMAL,
+        "NORMAL",
+        "The intended training experience",
+        PLAYER_STAMINA_REGEN_NORMAL,
+    ),
     (Difficulty.HARD, "HARD", "Lively bag, slower recovery", PLAYER_STAMINA_REGEN_HARD),
-    (Difficulty.EXPERT, "EXPERT", "Unforgiving physics, minimal rest", PLAYER_STAMINA_REGEN_EXPERT),
+    (
+        Difficulty.EXPERT,
+        "EXPERT",
+        "Unforgiving physics, minimal rest",
+        PLAYER_STAMINA_REGEN_EXPERT,
+    ),
 ]
 
 _TOGGLES = [
@@ -99,7 +114,9 @@ class SettingsScreen:
         esc_rect = ui.draw_keycap(
             screen, (SCREEN_WIDTH - s(230), s(120)), "ESC", size=s(38)
         )
-        hint = get_font("barlow-medium", 18).render("Back to menu", True, theme.TEXT_DIM)
+        hint = get_font("barlow-medium", 18).render(
+            "Back to menu", True, theme.TEXT_DIM
+        )
         hint.set_alpha(theme.TEXT_DIM_ALPHA)
         screen.blit(hint, (esc_rect.right + s(14), s(120) - hint.get_height() // 2))
 
@@ -126,7 +143,9 @@ class SettingsScreen:
             rect = pygame.Rect(left + i * (card_w + card_gap), y, card_w, card_h)
             selected = self.settings.difficulty == diff
             ui.draw_card(screen, rect, gold=selected)
-            title = font_card.render(name, True, theme.GOLD if selected else theme.TEXT_PRIMARY)
+            title = font_card.render(
+                name, True, theme.GOLD if selected else theme.TEXT_PRIMARY
+            )
             screen.blit(title, (rect.left + s(24), rect.top + s(20)))
             # One-line description, wrapped if needed
             desc_surf = font_desc.render(desc, True, theme.TEXT_DIM)
@@ -140,11 +159,18 @@ class SettingsScreen:
                 tab = pygame.Rect(rect.right - tab_w, rect.top, tab_w, s(28))
                 pygame.draw.rect(screen, theme.GOLD, tab)
                 ui.draw_tracked_label(
-                    screen, (tab.left + s(10), tab.top + s(6)), "SELECTED", tab_font, theme.PANEL, s(2)
+                    screen,
+                    (tab.left + s(10), tab.top + s(6)),
+                    "SELECTED",
+                    tab_font,
+                    theme.PANEL,
+                    s(2),
                 )
         # Cursor highlight for the difficulty strip
         if self.cursor == 0:
-            strip = pygame.Rect(left - s(14), y - s(14), SCREEN_WIDTH - 2 * left + s(28), card_h + s(28))
+            strip = pygame.Rect(
+                left - s(14), y - s(14), SCREEN_WIDTH - 2 * left + s(28), card_h + s(28)
+            )
             pygame.draw.rect(screen, (*theme.GOLD, 90), strip, 1)
         y += card_h + s(56)
 
@@ -191,7 +217,11 @@ class SettingsScreen:
         hint_y = rect.bottom + s(46)
         font_hint = get_font("barlow-medium", 18)
         x = left
-        for caps, label in ((("↑", "↓"), "Navigate"), (("←", "→"), "Adjust"), (("ENTER",), "Toggle")):
+        for caps, label in (
+            (("↑", "↓"), "Navigate"),
+            (("←", "→"), "Adjust"),
+            (("ENTER",), "Toggle"),
+        ):
             for cap in caps:
                 cap_rect = ui.draw_keycap(screen, (x + s(22), hint_y), cap, size=s(38))
                 x = cap_rect.right + s(10)
