@@ -100,8 +100,8 @@ class TestPlatformConstants(unittest.TestCase):
             PunchType, Difficulty
         )
 
-        self.assertEqual(SCREEN_WIDTH, 1000)
-        self.assertEqual(SCREEN_HEIGHT, 700)
+        self.assertEqual(SCREEN_WIDTH, 1280)
+        self.assertEqual(SCREEN_HEIGHT, 720)
         self.assertEqual(FPS, 60)
         self.assertTrue(hasattr(PunchType, 'JAB'))
         self.assertTrue(hasattr(Difficulty, 'NORMAL'))

@@ -47,8 +47,8 @@ def _setup_wsl_display() -> None:
 _setup_wsl_display()
 
 # Screen constants
-SCREEN_WIDTH = 1000
-SCREEN_HEIGHT = 700
+SCREEN_WIDTH = 1280
+SCREEN_HEIGHT = 720
 FPS = 60
 SAVE_FILE = "heavy_bag_save.json"
 
@@ -76,6 +76,7 @@ class GameState(Enum):
     PAUSED = 3
     GAME_OVER = 4
     TUTORIAL = 5
+    SETTINGS = 6
 
 
 class PunchType(Enum):
@@ -144,6 +145,7 @@ class GameSettings:
     sound_enabled: bool = True
     show_fps: bool = False
     particle_effects: bool = True
+    hud_variant: str = "full"  # "full" | "minimal"
 
 
 # Player Constants
