@@ -231,41 +231,19 @@ class Player:
             self._draw_fallback(screen, head_x, head_y)
 
     def _draw_special_effects(self, screen: pygame.Surface, x: float, y: float) -> None:
-        """Draw additional visual effects on the player."""
-        # Power meter charging effect
+        """Draw additional visual effects on the player.
+
+        Power-ready, multiplier, and combo feedback moved into the HUD
+        (design handoff screens 2/3); only a subtle ground ring remains
+        when the special is charged.
+        """
+        # Soft gold ground ring when the special is ready
         if self.power_meter >= self.max_power:
-            # Golden glow when power is full
-            glow_surface = pygame.Surface((100, 100), pygame.SRCALPHA)
-            pygame.draw.circle(glow_surface, (*GOLD, 60), (50, 50), 40)
-            pygame.draw.circle(glow_surface, (*GOLD, 30), (50, 50), 50)
-            glow_rect = glow_surface.get_rect(center=(x, y + 20))
-            screen.blit(glow_surface, glow_rect)
-
-        # Multiplier effect
-        if self.multiplier > 1:
-            mult_color = GOLD if self.multiplier >= 2 else YELLOW
-            pygame.draw.circle(screen, mult_color, (int(x), int(y - 40)), 15, 3)
-            font = pygame.font.Font(None, 24)
-            mult_text = font.render(f"{self.multiplier:.1f}x", True, mult_color)
-            mult_rect = mult_text.get_rect(center=(x, y - 40))
-            screen.blit(mult_text, mult_rect)
-
-        # Low stamina effect (breathing/panting)
-        if self.stamina < 30:
-            # Tired breathing effect
             ticks = pygame.time.get_ticks()
-            breathing_alpha = int(50 + math.sin(ticks * 0.01) * 30)
-            tired_overlay = pygame.Surface((80, 80), pygame.SRCALPHA)
-            tired_overlay.fill((*BLUE, breathing_alpha))
-            tired_rect = tired_overlay.get_rect(center=(x, y))
-            screen.blit(tired_overlay, tired_rect)
-
-        # Combo streak effect
-        if self.combo >= 5:
-            streak_effect = graphics_manager.create_combo_effect(self.combo)
-            if streak_effect:
-                streak_rect = streak_effect.get_rect(center=(x, y - 60))
-                screen.blit(streak_effect, streak_rect)
+            pulse = 0.7 + 0.3 * math.sin(ticks * 0.006)
+            ring = pygame.Surface((90, 24), pygame.SRCALPHA)
+            pygame.draw.ellipse(ring, (*GOLD, int(110 * pulse)), ring.get_rect(), 3)
+            screen.blit(ring, ring.get_rect(center=(x, y + 52)))
 
     def _draw_fallback(
         self, screen: pygame.Surface, head_x: float, head_y: float

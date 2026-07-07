@@ -43,6 +43,7 @@ from .tutorial_screen import TutorialScreen
 from .effects import (
     FloatingText,
     HitEffect,
+    ImpactRing,
     PowerUp,
     ComboEffect,
     particle_pool,
@@ -112,8 +113,14 @@ class GameManager:
         self.floating_texts: List[FloatingText] = []
         self.power_ups: List[PowerUp] = []
         self.combo_effects: List[ComboEffect] = []
-        self.screen_shake = 0
+        self.screen_shake = 0.0
         self._range_glow = None  # cached gradient for the in-range strip
+
+        # Combo counter animation state (pop on hit, fade after lapse)
+        self._last_combo = 0
+        self._combo_pop = 0
+        self._combo_fade = 0
+        self._combo_display = 0
 
         # Game timer
         self.game_timer = 0
@@ -298,8 +305,9 @@ class GameManager:
         """
         hit_height = bag_y + self.heavy_bag.height // 3
 
-        # Create hit effect
+        # Create hit effect + expanding impact ring at the contact point
         self.create_hit_effect(bag_x, hit_height, force)
+        self.hit_effects.append(ImpactRing(bag_x, hit_height))
 
         # Create floating score text
         combo_bonus = ""
@@ -335,8 +343,10 @@ class GameManager:
                     texture_name="sweat",
                 )
 
-        # Screen shake
-        self.screen_shake = min(10, int(force * 2))
+        # Screen shake only on heavy hits (design handoff: cross-tier
+        # strikes; ±6 spec-px decaying over ~0.3s)
+        if force >= 3.0:
+            self.screen_shake = float(theme.s(6))
 
         # Random power-up spawn (5% chance)
         if random.random() < 0.05:
@@ -383,17 +393,23 @@ class GameManager:
                 for _ in range(20):
                     self.create_hit_effect(bag_x, hit_height, force, special=True)
 
+                self.hit_effects.append(ImpactRing(bag_x, hit_height))
                 self.floating_texts.append(
                     FloatingText(bag_x, hit_height, "SPECIAL ATTACK!", GOLD, 48, 90)
                 )
 
-                self.screen_shake = 20
+                self.screen_shake = float(theme.s(10))
 
     def create_hit_effect(
         self, x: float, y: float, power: float, special: bool = False
     ) -> None:
-        """Create visual effects for successful hits."""
-        self.hit_effects.append(HitEffect(x, y, power))
+        """Create visual effects for successful hits.
+
+        Normal hits are carried by the ImpactRing + particles per the
+        design handoff; the heavier burst only fires on specials.
+        """
+        if special:
+            self.hit_effects.append(HitEffect(x, y, power))
 
         # Spawn particles
         if self.settings.particle_effects:
@@ -474,9 +490,24 @@ class GameManager:
         # Check power-up collisions
         self.check_power_up_collision()
 
-        # Update screen shake
+        # Screen shake decays exponentially (~0.3s to settle)
         if self.screen_shake > 0:
-            self.screen_shake -= 1
+            self.screen_shake *= 0.82
+            if self.screen_shake < 0.5:
+                self.screen_shake = 0.0
+
+        # Combo counter animation: pop on each new hit, fade 0.4s after
+        # the combo window lapses
+        if self.player.combo > self._last_combo and self.player.combo > 1:
+            self._combo_pop = 9
+        if self._combo_pop > 0:
+            self._combo_pop -= 1
+        if self.player.combo > 1:
+            self._combo_display = self.player.combo
+            self._combo_fade = 24
+        elif self._combo_fade > 0:
+            self._combo_fade -= 1
+        self._last_combo = self.player.combo
 
         # Update high score
         if self.player.score > self.high_score:
@@ -539,14 +570,32 @@ class GameManager:
             )
 
     def _draw_combo(self, size_1080: int, center_y: int) -> None:
-        """Centered combo counter with label and AMAZING chip (combo > 5)."""
+        """Centered combo counter: pops on each hit, fades after the
+        combo window lapses, AMAZING chip past 5."""
         s = theme.s
         combo = self.player.combo
+        alpha = 255
         if combo <= 1:
-            return
+            if self._combo_fade > 0 and self._combo_display > 1:
+                combo = self._combo_display
+                alpha = int(255 * self._combo_fade / 24)
+            else:
+                return
         cx = SCREEN_WIDTH // 2
         combo_surf = get_font("bebas", size_1080).render(f"{combo}×", True, theme.GOLD)
+        if self._combo_pop > 0 and alpha == 255:
+            pop = 1.0 + 0.35 * (self._combo_pop / 9)
+            combo_surf = pygame.transform.smoothscale(
+                combo_surf,
+                (
+                    int(combo_surf.get_width() * pop),
+                    int(combo_surf.get_height() * pop),
+                ),
+            )
         glow = ui.make_radial_glow(combo_surf.get_height() // 2 + s(30), theme.GOLD, 28)
+        if alpha < 255:
+            glow.set_alpha(alpha)
+            combo_surf.set_alpha(alpha)
         self.screen.blit(glow, glow.get_rect(center=(cx, center_y)))
         self.screen.blit(combo_surf, combo_surf.get_rect(center=(cx, center_y)))
         label_font = get_font("barlow-semibold", 18)
@@ -558,9 +607,9 @@ class GameManager:
             label_font,
             theme.TEXT_DIM,
             s(5),
-            alpha=theme.TEXT_DIM_ALPHA,
+            alpha=min(theme.TEXT_DIM_ALPHA, alpha),
         )
-        if combo > 5:
+        if combo > 5 and alpha == 255:
             chip_y = center_y + combo_surf.get_height() // 2 + s(34)
             # Draw chip centered: measure by drawing offscreen first is
             # wasteful; approximate width from the label instead.
@@ -1050,9 +1099,10 @@ class GameManager:
             # Apply screen shake
             shake_offset_x = 0
             shake_offset_y = 0
-            if self.screen_shake > 0:
-                shake_offset_x = random.randint(-self.screen_shake, self.screen_shake)
-                shake_offset_y = random.randint(-self.screen_shake, self.screen_shake)
+            if self.screen_shake >= 1:
+                amp = int(self.screen_shake)
+                shake_offset_x = random.randint(-amp, amp)
+                shake_offset_y = random.randint(-amp, amp)
 
             # Create temporary surface
             temp_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
