@@ -1,35 +1,37 @@
-# Heavy Bag Training Game - Enhanced Edition
+# Heavy Bag Training Game - Pro Edition
 
 A professional boxing training game built with Python and Pygame, featuring 
-realistic physics, enhanced graphics, modular architecture, and advanced 
+realistic physics, a fully redesigned UI, modular architecture, and advanced
 training features.
 
 ## 🎮 Features
 
 ### Core Gameplay
-- **Realistic Physics**: Heavy bag with authentic swinging motion and chain 
-  dynamics
-- **Multiple Punch Types**: Jab, Cross, Hook, Uppercut with unique properties 
-  and stamina costs
-- **Advanced Combo System**: Build combos for higher scores and spectacular 
-  visual effects
-- **Power-ups**: Stamina boosts, rage mode, multipliers, time control, and more
+- **Realistic Physics**: Heavy bag swings on damped impulses — each hit adds
+  a decaying oscillation that sums with concurrent hits
+- **Seven Attacks**: Jab, Cross, Hook, Uppercut plus Front Kick, Roundhouse,
+  and Low Kick, each with unique reach, force, and stamina cost
+- **Advanced Combo System**: Build combos for higher scores with animated
+  combo-counter feedback
+- **Power-ups**: Stamina boosts, rage mode, multipliers, and more
 - **Difficulty Levels**: Easy, Normal, Hard, Expert with progressive challenges
-- **Persistent Progress**: Comprehensive save system tracks scores, stats, and 
-  achievements
+- **Persistent Progress**: Comprehensive save system tracks scores, stats, and
+  settings
 
-### Enhanced Graphics & Visual Effects
-- **Procedural Sprite System**: Dynamic sprite generation with fallback 
-  graphics
-- **Gym Environment Backgrounds**: Immersive training environment with 
-  atmosphere
-- **Advanced Particle Effects**: Enhanced particles with texture support and 
-  realistic physics
-- **Visual Feedback System**: Damage indicators, combo effects, and power-up 
-  notifications
-- **Professional UI**: Clean interface with real-time stats and visual feedback
-- **Screen Effects**: Dynamic camera shake, damage glow, and atmospheric 
-  lighting
+### Modernized UI & Visual Design
+- **1280×720 window** with a design-token system (colors, spacing, type scale)
+  derived from the bundled design handoff (`design_handoff_heavy_bag_ui/`)
+- **Custom typography**: Bebas Neue display numerals and Barlow labels,
+  bundled under `assets/fonts/` (OFL), with automatic fallback to the
+  system font
+- **"Cel Classic" character**: cel-outlined boxer sprite set (idle + all 7
+  attacks) with an idle breathing bob
+- **Two HUD variants**: a full dashboard (segmented meters, control card,
+  bag-damage chip) or a minimal HUD — switchable in Settings
+- **Settings & Tutorial screens**: difficulty cards, pill toggles, and a
+  move-list reference generated from the game's own attack data
+- **Combat feedback**: expanding impact rings, rising floating scores,
+  screen shake on heavy hits, and a combo counter that pops on every hit
 
 ### Technical Improvements
 - **Modular Architecture**: Clean separation of concerns across 10+ modules
@@ -90,9 +92,14 @@ python -m src.main
   - X: Cross (strong, medium stamina)
   - C: Hook (powerful, high stamina)
   - V: Uppercut (devastating, highest stamina)
+- **Kicks**:
+  - Q: Front Kick (longest reach)
+  - W: Roundhouse (maximum force)
+  - E: Low Kick (quick chopping kick)
 - **Special**: SPACE (when power meter is full)
 - **Pause**: ESC
-- **Menu Navigation**: Arrow Keys + Enter
+- **Menu Navigation**: Arrow Keys + Enter (full move list in-game under
+  Tutorial)
 
 ### Gameplay Tips
 - **Timing**: Hit the bag when it's steady for "PERFECT!" bonuses
@@ -109,17 +116,25 @@ heavy_bag_game/
 │   ├── main.py                 # Main entry point
 │   ├── game/                   # Core game modules
 │   │   ├── __init__.py        # Game package exports
-│   │   ├── game_manager.py    # Main game loop and state management
+│   │   ├── game_manager.py    # Main game loop, state management, HUD
 │   │   ├── player.py          # Player character and combat mechanics
 │   │   ├── heavy_bag.py       # Heavy bag physics and rendering
-│   │   ├── graphics.py        # Graphics manager and sprite system
+│   │   ├── graphics.py        # Graphics manager and Cel Classic sprites
 │   │   ├── effects.py         # Visual effects, particles, and power-ups
-│   │   └── menu.py            # Menu system and UI
+│   │   ├── menu.py            # Main menu screen
+│   │   ├── settings_screen.py # Settings screen (difficulty, toggles)
+│   │   ├── tutorial_screen.py # Tutorial / move-list screen
+│   │   └── ui.py              # Shared UI widgets (panels, keycaps, bars)
 │   └── utils/                  # Utility modules
 │       ├── __init__.py        # Utils package
 │       ├── constants.py       # Game constants and enums
+│       ├── theme.py           # Design tokens (colors, spacing, scale)
+│       ├── fonts.py           # Cached font loader with fallback
 │       ├── logger.py          # Logging infrastructure
 │       └── save_manager.py    # Save/load functionality with validation
+├── assets/
+│   └── fonts/                  # Bundled Bebas Neue + Barlow TTFs (OFL)
+├── design_handoff_heavy_bag_ui/ # Design spec the UI is built from
 ├── tests/                      # Unit and integration tests
 │   ├── test_game.py           # Core game mechanics tests
 │   ├── test_integration.py    # Integration tests
@@ -188,11 +203,11 @@ python -m pytest tests/ -v
 python -m unittest discover -s tests/ -v
 ```
 
-**Current Test Coverage:**
+**Current Test Coverage (67 tests):**
 - Player mechanics (stamina, combos, punches, rage mode)
 - Heavy bag physics (swinging, damage, recovery)
 - Score calculations and difficulty levels
-- Save/load system with validation
+- Save/load system with validation and settings compatibility
 - Platform-specific configuration (WSL detection)
 
 ### Adding Features
@@ -241,26 +256,43 @@ your needs.
 
 ## 📋 Recent Changes
 
-### Latest Updates
+### UI Modernization (Pro Edition)
+
+- **Full visual redesign** from the bundled design handoff
+  (`design_handoff_heavy_bag_ui/`): every screen rebuilt at 1280×720 with
+  a shared design-token system and bundled Bebas Neue/Barlow fonts
+- **New screens**: Settings (difficulty cards, sound/particles/FPS/HUD
+  toggles, persisted to the save file) and Tutorial (move list generated
+  from attack data) — previously stubbed menu options
+- **"Cel Classic" character**: cel-outlined sprite set for idle + all
+  7 attacks, transcribed from the handoff's pose sheet, with an idle
+  breathing bob
+- **Combat feel**: damped-impulse bag physics, expanding impact rings,
+  rising floating scores, heavy-hit-only screen shake, animated combo
+  counter
+- **HUD variants**: full dashboard or minimal HUD, switchable in Settings
+  and persisted (older save files load unchanged)
+- **Testing**: 67 tests, all passing headlessly (fixed pre-existing
+  failures caused by font construction before pygame init)
+
+### Earlier Updates
+
 - **Bug Fixes**:
   - Fixed undefined variable crash in graphics sprite creation
   - Fixed potential NameError in power-up collision handling
   - Fixed memory leak in particle trail effects
 
 - **Performance Improvements**:
-  - Added font caching in heavy bag rendering (eliminates per-frame allocation)
   - Optimized particle system with proper pool usage
 
 - **Code Quality**:
   - Standardized logging throughout (removed print statements)
   - Removed ~85 lines of duplicated drawing code
   - Refactored hit detection with configurable parameters
-  - Added handlers for unimplemented menu options
 
 - **Testing**:
   - Added comprehensive save manager tests
   - Added platform-specific tests (WSL detection)
-  - 65 total tests (24 passing, 41 require pygame)
 
 ## 🏆 Credits
 
