@@ -27,8 +27,12 @@ from ..utils.constants import (
     PunchType,
     ATTACK_PROPERTIES,
 )
+from ..utils import theme
+from ..utils.constants import BAG_MAX_DAMAGE, ROUND_TIME_SECONDS
+from ..utils.fonts import get_font
 from ..utils.save_manager import SaveManager
 from ..utils.logger import get_logger, SaveError, LoadError, CorruptedDataError
+from . import ui
 
 logger = get_logger()
 from .player import Player
@@ -109,6 +113,7 @@ class GameManager:
         self.power_ups: List[PowerUp] = []
         self.combo_effects: List[ComboEffect] = []
         self.screen_shake = 0
+        self._range_glow = None  # cached gradient for the in-range strip
 
         # Game timer
         self.game_timer = 0
@@ -536,243 +541,452 @@ class GameManager:
             logger.error(f"Failed to save game data: {e}")
             # Game continues, but user is notified via logs of save failure
 
-    def draw_ui(self) -> None:
-        """Draw the game user interface."""
-        # Timer
+    def _timer_state(self) -> tuple[str, float]:
+        """Return (MM:SS remaining, elapsed fraction of the round)."""
         time_left = max(0, self.round_time - self.game_timer) // FPS
-        minutes = time_left // 60
-        seconds = time_left % 60
-        timer_str = f"{minutes:02d}:{seconds:02d}"
-        timer_text = self.font_large.render(timer_str, True, WHITE)
-        timer_rect = timer_text.get_rect(center=(SCREEN_WIDTH // 2, 30))
-        self.screen.blit(timer_text, timer_rect)
+        timer_str = f"{time_left // 60:02d}:{time_left % 60:02d}"
+        return timer_str, min(1.0, self.game_timer / self.round_time)
 
-        # Score
-        score_str = f"Score: {self.player.score}"
-        score_text = self.font_large.render(score_str, True, WHITE)
-        self.screen.blit(score_text, (10, 10))
+    def draw_ui(self) -> None:
+        """Draw the in-round HUD (full or minimal variant)."""
+        if self.settings.hud_variant == "minimal":
+            self._draw_hud_minimal()
+        else:
+            self._draw_hud_full()
 
-        # High Score
-        high_score_text = self.font_medium.render(
-            f"Best: {self.high_score}", True, GOLD
+        if self.settings.show_fps:
+            fps_text = get_font("barlow-semibold", 18).render(
+                f"FPS: {int(self.clock.get_fps())}", True, theme.STAMINA_GREEN
+            )
+            self.screen.blit(
+                fps_text,
+                (SCREEN_WIDTH - fps_text.get_width() - theme.s(24), theme.s(14)),
+            )
+
+    def _draw_combo(self, size_1080: int, center_y: int) -> None:
+        """Centered combo counter with label and AMAZING chip (combo > 5)."""
+        s = theme.s
+        combo = self.player.combo
+        if combo <= 1:
+            return
+        cx = SCREEN_WIDTH // 2
+        combo_surf = get_font("bebas", size_1080).render(f"{combo}×", True, theme.GOLD)
+        glow = ui.make_radial_glow(combo_surf.get_height() // 2 + s(30), theme.GOLD, 28)
+        self.screen.blit(glow, glow.get_rect(center=(cx, center_y)))
+        self.screen.blit(combo_surf, combo_surf.get_rect(center=(cx, center_y)))
+        label_font = get_font("barlow-semibold", 18)
+        label_w = ui.tracked_label_width("COMBO", label_font, s(5))
+        ui.draw_tracked_label(
+            self.screen,
+            (cx - label_w // 2, center_y + combo_surf.get_height() // 2 - s(6)),
+            "COMBO",
+            label_font,
+            theme.TEXT_DIM,
+            s(5),
+            alpha=theme.TEXT_DIM_ALPHA,
         )
-        self.screen.blit(high_score_text, (10, 60))
+        if combo > 5:
+            chip_y = center_y + combo_surf.get_height() // 2 + s(34)
+            # Draw chip centered: measure by drawing offscreen first is
+            # wasteful; approximate width from the label instead.
+            chip_font = get_font("barlow-semibold", 17)
+            chip_w = ui.tracked_label_width("AMAZING", chip_font, s(4)) + 2 * s(18)
+            ui.draw_chip(self.screen, (cx - chip_w // 2, chip_y), "AMAZING", theme.GOLD)
+
+    def _draw_status_chips(self, y: int) -> None:
+        """RAGE / multiplier chips under the timer."""
+        s = theme.s
+        chips = []
+        if self.player.rage_mode:
+            chips.append(("RAGE", theme.RAGE_RED))
+        if self.player.multiplier > 1:
+            chips.append((f"{self.player.multiplier}× SCORE", theme.GOLD))
+        x = SCREEN_WIDTH // 2 - s(70) * len(chips)
+        for text, color in chips:
+            rect = ui.draw_chip(self.screen, (x, y), text, color, dot=True)
+            x = rect.right + s(16)
+
+    def _draw_hud_full(self) -> None:
+        """Full dashboard HUD (design handoff screen 2)."""
+        s = theme.s
+        label_font = get_font("barlow-semibold", 16)
+        margin = s(theme.MARGIN_HUD)
+
+        # --- Top-left: score block ---
+        x, y = margin, s(56)
+        ui.draw_tracked_label(
+            self.screen, (x, y), "SCORE", label_font, theme.TEXT_DIM, s(4),
+            alpha=theme.TEXT_DIM_ALPHA,
+        )
+        score_surf = get_font("bebas", 96).render(
+            f"{self.player.score:,}", True, theme.TEXT_PRIMARY
+        )
+        self.screen.blit(score_surf, (x, y + s(24)))
+        best_surf = get_font("bebas", 32).render(
+            f"BEST {self.high_score:,}", True, theme.GOLD
+        )
+        self.screen.blit(best_surf, (x, y + s(24) + score_surf.get_height()))
+
+        # --- Top-center: timer + round progress ---
+        timer_str, progress = self._timer_state()
+        cx = SCREEN_WIDTH // 2
+        timer_surf = get_font("bebas", 110).render(timer_str, True, theme.TEXT_PRIMARY)
+        self.screen.blit(timer_surf, timer_surf.get_rect(midtop=(cx, s(40))))
+        bar_rect = pygame.Rect(0, 0, s(360), s(4))
+        bar_rect.midtop = (cx, s(40) + timer_surf.get_height() + s(10))
+        ui.draw_mini_bar(self.screen, bar_rect, progress, theme.GOLD)
+        round_label = f"TRAINING ROUND — {ROUND_TIME_SECONDS // 60}:{ROUND_TIME_SECONDS % 60:02d}"
+        lbl_w = ui.tracked_label_width(round_label, label_font, s(3))
+        ui.draw_tracked_label(
+            self.screen,
+            (cx - lbl_w // 2, bar_rect.bottom + s(12)),
+            round_label,
+            label_font,
+            theme.TEXT_DIM,
+            s(3),
+            alpha=theme.TEXT_DIM_ALPHA,
+        )
+        self._draw_status_chips(bar_rect.bottom + s(46))
+
+        # --- Top-right: meters panel ---
+        panel = pygame.Rect(0, 0, s(360), s(158))
+        panel.topright = (SCREEN_WIDTH - margin, s(56))
+        ui.draw_panel(self.screen, panel)
+        pad = s(24)
+        value_font = get_font("bebas", 28)
+        meters = [
+            ("STAMINA", self.player.stamina, self.player.max_stamina, theme.STAMINA_GREEN),
+            (
+                "POWER",
+                self.player.power_meter,
+                self.player.max_power,
+                theme.GOLD
+                if self.player.power_meter >= self.player.max_power
+                else theme.POWER_BLUE,
+            ),
+        ]
+        for i, (name, value, maximum, color) in enumerate(meters):
+            row_y = panel.top + pad + i * s(52)
+            ui.draw_tracked_label(
+                self.screen, (panel.left + pad, row_y), name, label_font,
+                theme.TEXT_DIM, s(3), alpha=theme.TEXT_DIM_ALPHA,
+            )
+            value_surf = value_font.render(str(int(value)), True, color)
+            self.screen.blit(
+                value_surf, (panel.right - pad - value_surf.get_width(), row_y - s(6))
+            )
+            ui.draw_segmented_bar(
+                self.screen,
+                pygame.Rect(panel.left + pad, row_y + s(24), panel.width - 2 * pad - s(64), s(10)),
+                value / maximum,
+                color,
+            )
+        caption = "SPACE UNLOCKS SPECIAL AT 100"
+        ui.draw_tracked_label(
+            self.screen,
+            (panel.left + pad, panel.bottom - pad - s(14)),
+            caption,
+            get_font("barlow-medium", 13),
+            theme.GOLD if self.player.power_meter >= self.player.max_power else theme.TEXT_DIM,
+            s(2),
+            alpha=255 if self.player.power_meter >= self.player.max_power else theme.TEXT_DIM_ALPHA,
+        )
+
+        # --- Center: combo ---
+        self._draw_combo(200, s(330))
+
+        # --- Bottom-left: control card ---
+        self._draw_control_card()
+
+        # --- Bottom-right: bag damage chip ---
+        chip = pygame.Rect(0, 0, s(290), s(56))
+        chip.bottomright = (SCREEN_WIDTH - margin, SCREEN_HEIGHT - margin + s(24))
+        ui.draw_panel(self.screen, chip)
+        ui.draw_tracked_label(
+            self.screen,
+            (chip.left + s(20), chip.centery - s(8)),
+            "BAG",
+            label_font,
+            theme.TEXT_DIM,
+            s(3),
+            alpha=theme.TEXT_DIM_ALPHA,
+        )
+        damage_ratio = self.heavy_bag.damage / BAG_MAX_DAMAGE if self.heavy_bag else 0
+        bar = pygame.Rect(chip.left + s(78), chip.centery - s(3), s(120), s(6))
+        ui.draw_mini_bar(self.screen, bar, damage_ratio, theme.IMPACT_YELLOW)
+        pct = get_font("bebas", 24).render(f"{int(damage_ratio * 100)}%", True, theme.TEXT_PRIMARY)
+        self.screen.blit(pct, (bar.right + s(16), chip.centery - pct.get_height() // 2))
+
+    def _draw_control_card(self) -> None:
+        """Bottom-left move/keycap reference card."""
+        s = theme.s
+        margin = s(theme.MARGIN_HUD)
+        panel = pygame.Rect(0, 0, s(560), s(286))
+        panel.bottomleft = (margin, SCREEN_HEIGHT - margin + s(24))
+        ui.draw_panel(self.screen, panel)
+        pad = s(24)
+        header_font = get_font("barlow-semibold", 14)
+        name_font = get_font("barlow-semibold", 18)
+        cost_font = get_font("barlow-bold", 15)
+
+        columns = [
+            ("PUNCHES", [
+                ("Z", "Jab", PunchType.JAB),
+                ("X", "Cross", PunchType.CROSS),
+                ("C", "Hook", PunchType.HOOK),
+                ("V", "Uppercut", PunchType.UPPERCUT),
+            ]),
+            ("KICKS", [
+                ("Q", "Front Kick", PunchType.FRONT_KICK),
+                ("W", "Roundhouse", PunchType.ROUNDHOUSE_KICK),
+                ("E", "Low Kick", PunchType.LOW_KICK),
+            ]),
+        ]
+        col_w = (panel.width - 2 * pad) // 2
+        for c, (title, moves) in enumerate(columns):
+            cx0 = panel.left + pad + c * col_w
+            ui.draw_tracked_label(
+                self.screen, (cx0, panel.top + s(18)), title, header_font,
+                theme.TEXT_DIM, s(3), alpha=theme.TEXT_DIM_ALPHA,
+            )
+            for r, (key, name, punch) in enumerate(moves):
+                row_y = panel.top + s(48) + r * s(42)
+                cap_size = s(34)
+                ui.draw_keycap(
+                    self.screen, (cx0 + cap_size // 2, row_y + cap_size // 2), key, size=cap_size
+                )
+                name_surf = name_font.render(name, True, theme.TEXT_PRIMARY)
+                self.screen.blit(name_surf, (cx0 + cap_size + s(14), row_y + s(4)))
+                cost = ATTACK_PROPERTIES[punch].stamina_cost
+                cost_surf = cost_font.render(f"−{cost}", True, theme.STAMINA_GREEN)
+                self.screen.blit(
+                    cost_surf, (cx0 + col_w - s(50), row_y + s(6))
+                )
+        # Gold SPACE special row along the bottom (below the longer column)
+        row_y = panel.top + s(48) + 4 * s(42) + s(10)
+        cap_rect = ui.draw_keycap(
+            self.screen,
+            (panel.left + pad + s(38), row_y + s(17)),
+            "SPACE",
+            size=s(34),
+            gold=True,
+        )
+        special_surf = name_font.render("Special — full power meter", True, theme.GOLD)
+        self.screen.blit(special_surf, (cap_rect.right + s(14), row_y + s(4)))
+
+    def _draw_hud_minimal(self) -> None:
+        """Minimal HUD (design handoff screen 3): no panels, slim bars."""
+        s = theme.s
+        margin = s(theme.MARGIN_HUD)
+
+        # Score + BEST inline, top-left
+        score_surf = get_font("bebas", 56).render(
+            f"{self.player.score:,}", True, theme.TEXT_PRIMARY
+        )
+        self.screen.blit(score_surf, (margin, s(48)))
+        best_surf = get_font("bebas", 28).render(
+            f"BEST {self.high_score:,}", True, theme.GOLD
+        )
+        self.screen.blit(
+            best_surf,
+            (margin + score_surf.get_width() + s(20), s(48) + score_surf.get_height() - best_surf.get_height() - s(6)),
+        )
+
+        # Timer + slim progress, top-center
+        timer_str, progress = self._timer_state()
+        cx = SCREEN_WIDTH // 2
+        timer_surf = get_font("bebas", 64).render(timer_str, True, theme.TEXT_PRIMARY)
+        self.screen.blit(timer_surf, timer_surf.get_rect(midtop=(cx, s(40))))
+        bar_rect = pygame.Rect(0, 0, s(200), s(2))
+        bar_rect.midtop = (cx, s(40) + timer_surf.get_height() + s(8))
+        ui.draw_mini_bar(self.screen, bar_rect, progress, theme.GOLD)
+        self._draw_status_chips(bar_rect.bottom + s(20))
 
         # Combo
-        if self.player.combo > 1:
-            combo_color = (
-                GOLD
-                if self.player.combo >= 10
-                else YELLOW if self.player.combo >= 5 else WHITE
-            )
-            combo_text = self.font_large.render(
-                f"{self.player.combo}x COMBO!", True, combo_color
-            )
-            combo_rect = combo_text.get_rect(center=(SCREEN_WIDTH // 2, 100))
-            self.screen.blit(combo_text, combo_rect)
+        self._draw_combo(160, s(300))
 
-        # Stamina bar
-        self.draw_bar(
-            SCREEN_WIDTH - 220,
-            20,
-            200,
-            20,
-            self.player.stamina,
-            self.player.max_stamina,
-            GREEN,
-            "STAMINA",
-        )
-
-        # Power meter
-        self.draw_bar(
-            SCREEN_WIDTH - 220,
-            60,
-            200,
-            20,
-            self.player.power_meter,
-            self.player.max_power,
-            BLUE if self.player.power_meter < self.player.max_power else GOLD,
-            "POWER",
-        )
-
-        # Rage mode indicator
-        if self.player.rage_mode:
-            rage_text = self.font_medium.render("RAGE MODE!", True, RED)
-            rage_rect = rage_text.get_rect(center=(SCREEN_WIDTH // 2, 180))
-            self.screen.blit(rage_text, rage_rect)
-
-        # Multiplier indicator
-        if self.player.multiplier > 1:
-            mult_text = self.font_medium.render(
-                f"{self.player.multiplier}x", True, GOLD
-            )
-            mult_rect = mult_text.get_rect(center=(SCREEN_WIDTH // 2, 210))
-            self.screen.blit(mult_text, mult_rect)
-
-        # Instructions
-        instructions = [
-            "A/D or ←/→: Move | Z: Jab | X: Cross | C: Hook | V: Uppercut",
-            "SPACE: Special | ESC: Pause",
+        # Bottom-center slim meters
+        label_font = get_font("barlow-semibold", 14)
+        meters = [
+            ("STA", self.player.stamina, self.player.max_stamina, theme.STAMINA_GREEN),
+            (
+                "PWR",
+                self.player.power_meter,
+                self.player.max_power,
+                theme.GOLD
+                if self.player.power_meter >= self.player.max_power
+                else theme.POWER_BLUE,
+            ),
         ]
+        for i, (name, value, maximum, color) in enumerate(meters):
+            bar = pygame.Rect(0, 0, s(420), s(6))
+            bar.midtop = (cx, SCREEN_HEIGHT - s(96) + i * s(26))
+            lbl = label_font.render(name, True, theme.TEXT_DIM)
+            lbl.set_alpha(theme.TEXT_DIM_ALPHA)
+            self.screen.blit(lbl, (bar.left - lbl.get_width() - s(14), bar.top - s(6)))
+            ui.draw_mini_bar(self.screen, bar, value / maximum, color)
 
-        for i, instruction in enumerate(instructions):
-            text = self.font_small.render(instruction, True, LIGHT_GRAY)
-            self.screen.blit(text, (10, SCREEN_HEIGHT - 60 + i * 25))
-
-        # Range indicator
-        bag_x, _ = self.heavy_bag.get_position()
-        punch_dir = 1 if self.player.facing_right else -1
-        fist_x = self.player.x + (40 * punch_dir)
-        bag_left = bag_x - self.heavy_bag.width // 2
-        bag_right = bag_x + self.heavy_bag.width // 2
-
-        if fist_x >= bag_left - 20 and fist_x <= bag_right + 20:
-            range_text = self.font_medium.render("IN RANGE!", True, GREEN)
-            range_rect = range_text.get_rect(center=(SCREEN_WIDTH // 2, 150))
-            self.screen.blit(range_text, range_rect)
-
-        # FPS counter
-        if self.settings.show_fps:
-            fps = int(self.clock.get_fps())
-            fps_text = self.font_small.render(f"FPS: {fps}", True, GREEN)
-            self.screen.blit(fps_text, (SCREEN_WIDTH - 80, 10))
-
-    def draw_controls(self) -> None:
-        """Draw clean, organized control labels on screen."""
-        # Create compact semi-transparent background panel (top-left position)
-        panel_width = 320
-        panel_height = 155
-        panel_x = 15
-        panel_y = 15  # Top of screen instead of bottom
-
-        # Draw background panel
-        panel_surface = pygame.Surface(
-            (panel_width, panel_height), pygame.SRCALPHA
+        # One dim hint line bottom-right
+        hint = get_font("barlow-medium", 15).render(
+            "Z X C V punches · Q W E kicks · SPACE special · ESC pause",
+            True,
+            theme.TEXT_DIM,
         )
-        pygame.draw.rect(
-            panel_surface, (0, 0, 0, 140), (0, 0, panel_width, panel_height)
+        hint.set_alpha(theme.TEXT_DIM_ALPHA)
+        self.screen.blit(
+            hint,
+            (SCREEN_WIDTH - margin - hint.get_width(), SCREEN_HEIGHT - s(52)),
         )
-        pygame.draw.rect(
-            panel_surface, DARK_GRAY,
-            (0, 0, panel_width, panel_height), 2
-        )
-        self.screen.blit(panel_surface, (panel_x, panel_y))
-
-        # Control layout in organized columns with tighter spacing
-        col1_x = panel_x + 12
-        col2_x = panel_x + 170
-        base_y = panel_y + 10
-
-        controls = [
-            # Left column
-            ("MOVEMENT", col1_x, base_y, WHITE, True),
-            ("A/D or ←→", col1_x, base_y + 25, LIGHT_GRAY, False),
-            ("", col1_x, base_y + 45, WHITE, False),  # Spacer
-            ("PUNCHES", col1_x, base_y + 50, GOLD, True),
-            ("Z - Jab", col1_x, base_y + 72, LIGHT_GRAY, False),
-            ("X - Cross", col1_x, base_y + 90, LIGHT_GRAY, False),
-            ("C - Hook", col1_x, base_y + 108, LIGHT_GRAY, False),
-            ("V - Uppercut", col1_x, base_y + 126, LIGHT_GRAY, False),
-            # Right column
-            ("ESC - Pause", col2_x, base_y, LIGHT_GRAY, False),
-            ("SPACE - Special", col2_x, base_y + 20, LIGHT_GRAY, False),
-            ("", col2_x, base_y + 45, WHITE, False),  # Spacer
-            ("KICKS", col2_x, base_y + 50, GOLD, True),
-            ("Q - Front Kick", col2_x, base_y + 72, LIGHT_GRAY, False),
-            ("W - Roundhouse", col2_x, base_y + 90, LIGHT_GRAY, False),
-            ("E - Low Kick", col2_x, base_y + 108, LIGHT_GRAY, False),
-        ]
-
-        for text, x, y, color, is_header in controls:
-            if text:  # Skip empty spacers
-                font = self.font_medium if is_header else self.font_small
-                rendered_text = font.render(text, True, color)
-                self.screen.blit(rendered_text, (x, y))
-
-    def draw_bar(
-        self,
-        x: int,
-        y: int,
-        width: int,
-        height: int,
-        value: float,
-        max_value: float,
-        color: tuple,
-        label: str,
-    ) -> None:
-        """Draw a progress bar with label."""
-        pygame.draw.rect(
-            self.screen, DARK_GRAY, (x - 2, y - 2, width + 4, height + 4)
-        )
-        pygame.draw.rect(self.screen, BLACK, (x, y, width, height))
-
-        fill = int(width * (value / max_value))
-        pygame.draw.rect(self.screen, color, (x, y, fill, height))
-
-        label_text = self.font_small.render(label, True, WHITE)
-        self.screen.blit(label_text, (x, y - 20))
 
     def draw_pause_menu(self) -> None:
-        """Draw the pause menu overlay."""
-        # Darken screen
-        overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
-        overlay.set_alpha(128)
-        overlay.fill(BLACK)
+        """Draw the pause overlay (design handoff screen 4)."""
+        s = theme.s
+        overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+        overlay.fill((*theme.OVERLAY_DARK, theme.OVERLAY_ALPHA))
         self.screen.blit(overlay, (0, 0))
 
-        # Pause text
-        pause_text = self.font_large.render("PAUSED", True, WHITE)
-        pause_rect = pause_text.get_rect(
-            center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 50)
+        left = s(200)
+        label_font = get_font("barlow-semibold", 17)
+        timer_str, _ = self._timer_state()
+        ui.draw_tracked_label(
+            self.screen,
+            (left, s(240)),
+            f"TRAINING ROUND — {timer_str} LEFT",
+            label_font,
+            theme.TEXT_DIM,
+            s(3),
+            alpha=theme.TEXT_DIM_ALPHA,
         )
-        self.screen.blit(pause_text, pause_rect)
+        paused = get_font("bebas", 220).render("PAUSED", True, theme.TEXT_PRIMARY)
+        self.screen.blit(paused, (left - s(8), s(266)))
 
-        # Instructions
-        instructions = ["Press ESC to Resume", "Press Q to Quit to Menu"]
-
-        for i, text in enumerate(instructions):
-            inst = self.font_medium.render(text, True, WHITE)
-            inst_rect = inst.get_rect(
-                center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + i * 40)
+        rows_y = s(266) + paused.get_height() + s(30)
+        row_w, row_h = s(520), s(74)
+        for i, (text, key) in enumerate((("RESUME", "ESC"), ("QUIT TO MENU", "Q"))):
+            rect = pygame.Rect(left, rows_y + i * row_h, row_w, row_h - s(10))
+            ui.draw_menu_row(self.screen, rect, text, i == 0, hint="")
+            ui.draw_keycap(
+                self.screen,
+                (rect.right - s(48), rect.centery),
+                key,
+                size=s(36),
+                gold=i == 0,
             )
-            self.screen.blit(inst, inst_rect)
+
+        # Right: THIS SESSION panel
+        panel = pygame.Rect(0, 0, s(380), s(280))
+        panel.topright = (SCREEN_WIDTH - s(160), s(300))
+        ui.draw_panel(self.screen, panel)
+        pad = s(28)
+        ui.draw_tracked_label(
+            self.screen,
+            (panel.left + pad, panel.top + s(24)),
+            "THIS SESSION",
+            label_font,
+            theme.TEXT_DIM,
+            s(4),
+            alpha=theme.TEXT_DIM_ALPHA,
+        )
+        session = [
+            ("Score", f"{self.player.score:,}", theme.TEXT_PRIMARY),
+            ("Best combo", f"{self.player.max_combo}×", theme.GOLD),
+            ("Punches thrown", str(self.player.total_punches), theme.TEXT_PRIMARY),
+        ]
+        stat_label_font = get_font("barlow-medium", 17)
+        value_font = get_font("bebas", 44)
+        for i, (label, value, color) in enumerate(session):
+            row_y = panel.top + s(76) + i * s(62)
+            lbl = stat_label_font.render(label, True, theme.TEXT_DIM)
+            lbl.set_alpha(theme.TEXT_DIM_ALPHA)
+            self.screen.blit(lbl, (panel.left + pad, row_y + s(8)))
+            val = value_font.render(value, True, color)
+            self.screen.blit(val, (panel.right - pad - val.get_width(), row_y))
 
     def draw_game_over(self) -> None:
-        """Draw the game over screen with statistics."""
-        # Background
-        self.screen.fill(BLACK)
+        """Draw the round-complete screen (design handoff screen 5)."""
+        s = theme.s
+        self.screen.fill((0, 0, 0))
+        glow = ui.make_radial_glow(s(360), theme.GOLD, 36)
+        self.screen.blit(glow, glow.get_rect(center=(SCREEN_WIDTH // 2, 0)))
 
-        # Game Over text
-        game_over_text = self.font_large.render("ROUND COMPLETE!", True, GOLD)
-        go_rect = game_over_text.get_rect(center=(SCREEN_WIDTH // 2, 100))
-        self.screen.blit(game_over_text, go_rect)
+        cx = SCREEN_WIDTH // 2
+        label_font = get_font("barlow-semibold", 17)
 
-        # Stats
-        stats = [
-            f"Final Score: {self.player.score}",
-            f"High Score: {self.high_score}",
-            f"Best Combo: {self.player.max_combo}",
-            f"Total Punches: {self.player.total_punches}",
-            "",
-            "All-Time Stats:",
-            f"Total Punches: {self.total_punches_all_time}",
-            f"Best Combo Ever: {self.best_combo_all_time}",
+        session_label = f"TRAINING SESSION — {ROUND_TIME_SECONDS // 60}:{ROUND_TIME_SECONDS % 60:02d}"
+        lbl_w = ui.tracked_label_width(session_label, label_font, s(4))
+        ui.draw_tracked_label(
+            self.screen, (cx - lbl_w // 2, s(70)), session_label, label_font,
+            theme.TEXT_DIM, s(4), alpha=theme.TEXT_DIM_ALPHA,
+        )
+
+        title = get_font("bebas", 130).render("ROUND COMPLETE", True, theme.GOLD)
+        self.screen.blit(title, title.get_rect(midtop=(cx, s(100))))
+
+        final_label_y = s(100) + title.get_height() + s(16)
+        lbl_w = ui.tracked_label_width("FINAL SCORE", label_font, s(4))
+        ui.draw_tracked_label(
+            self.screen, (cx - lbl_w // 2, final_label_y), "FINAL SCORE",
+            label_font, theme.TEXT_DIM, s(4), alpha=theme.TEXT_DIM_ALPHA,
+        )
+        score_surf = get_font("bebas", 250).render(
+            f"{self.player.score:,}", True, theme.TEXT_PRIMARY
+        )
+        self.screen.blit(score_surf, score_surf.get_rect(midtop=(cx, final_label_y + s(20))))
+
+        # Three stat cards
+        cards = [
+            ("BEST COMBO", f"{self.player.max_combo}×", theme.GOLD),
+            ("TOTAL PUNCHES", str(self.player.total_punches), theme.TEXT_PRIMARY),
+            ("HIGH SCORE", f"{self.high_score:,}", theme.TEXT_PRIMARY),
         ]
+        card_w, card_h, gap = s(300), s(150), s(24)
+        cards_y = final_label_y + s(20) + score_surf.get_height() + s(20)
+        total_w = 3 * card_w + 2 * gap
+        value_font = get_font("bebas", 72)
+        card_label_font = get_font("barlow-semibold", 15)
+        for i, (label, value, color) in enumerate(cards):
+            rect = pygame.Rect(cx - total_w // 2 + i * (card_w + gap), cards_y, card_w, card_h)
+            ui.draw_card(self.screen, rect)
+            lbl_w = ui.tracked_label_width(label, card_label_font, s(3))
+            ui.draw_tracked_label(
+                self.screen,
+                (rect.centerx - lbl_w // 2, rect.top + s(24)),
+                label,
+                card_label_font,
+                theme.TEXT_DIM,
+                s(3),
+                alpha=theme.TEXT_DIM_ALPHA,
+            )
+            val = value_font.render(value, True, color)
+            self.screen.blit(val, val.get_rect(midtop=(rect.centerx, rect.top + s(52))))
 
-        for i, stat in enumerate(stats):
-            color = GOLD if stat.startswith("All-Time") else WHITE
-            text = self.font_medium.render(stat, True, color)
-            text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, 200 + i * 40))
-            self.screen.blit(text, text_rect)
+        # All-time strip
+        strip = (
+            f"ALL-TIME · {self.total_punches_all_time:,} TOTAL PUNCHES · "
+            f"{self.best_combo_all_time}× BEST COMBO"
+        )
+        strip_font = get_font("barlow-medium", 16)
+        strip_w = ui.tracked_label_width(strip, strip_font, s(2))
+        ui.draw_tracked_label(
+            self.screen,
+            (cx - strip_w // 2, cards_y + card_h + s(36)),
+            strip,
+            strip_font,
+            theme.TEXT_DIM,
+            s(2),
+            alpha=theme.TEXT_DIM_ALPHA,
+        )
 
-        # Instructions
-        instructions = self.font_medium.render(
-            "Press ENTER for Menu | Press R to Restart", True, LIGHT_GRAY
-        )
-        inst_rect = instructions.get_rect(
-            center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 50)
-        )
-        self.screen.blit(instructions, inst_rect)
+        # Keycap hints
+        hint_font = get_font("barlow-medium", 18)
+        hint_y = SCREEN_HEIGHT - s(70)
+        x = cx - s(160)
+        for cap, label in (("ENTER", "Menu"), ("R", "Restart")):
+            cap_rect = ui.draw_keycap(self.screen, (x, hint_y), cap, size=s(38))
+            text = hint_font.render(label, True, theme.TEXT_DIM)
+            text.set_alpha(theme.TEXT_DIM_ALPHA)
+            self.screen.blit(text, (cap_rect.right + s(12), hint_y - text.get_height() // 2))
+            x = cap_rect.right + s(12) + text.get_width() + s(60)
 
     def draw(self) -> None:
         """Main drawing method for all game states with enhanced graphics."""
@@ -897,34 +1111,55 @@ class GameManager:
                 )
 
     def _draw_enhanced_range_indicator(self, surface: pygame.Surface) -> None:
-        """Draw enhanced range indicator with visual effects."""
-        bag_x, bag_y = self.heavy_bag.get_position()
+        """Green glow strip rising from the floor under the bag while the
+        player is in the hit zone (design handoff screen 2)."""
+        s = theme.s
+        bag_x, _ = self.heavy_bag.get_position()
         hit_zone_left = bag_x - self.heavy_bag.width // 2 - 60
         hit_zone_right = bag_x + self.heavy_bag.width // 2 + 20
-        zone_width = hit_zone_right - hit_zone_left
+        floor_y = SCREEN_HEIGHT - s(60)
 
-        # Base zone
-        zone_rect = (hit_zone_left, SCREEN_HEIGHT - 39, zone_width, 38)
-        pygame.draw.rect(surface, (40, 40, 50), zone_rect)
+        player_in_range = hit_zone_left <= self.player.x <= hit_zone_right
+        if not player_in_range:
+            # Faint resting marker so the zone stays discoverable
+            pygame.draw.line(
+                surface,
+                (60, 64, 70),
+                (hit_zone_left, floor_y),
+                (hit_zone_right, floor_y),
+                1,
+            )
+            return
 
-        # Check if player is in range
-        player_in_range = (
-            self.player.x >= hit_zone_left and self.player.x <= hit_zone_right
+        if self._range_glow is None:
+            self._range_glow = ui.make_vertical_alpha_gradient(
+                (s(360), s(180)), theme.STAMINA_GREEN, 0, 80
+            )
+        # Opacity pulse 0.55 -> 1.0 at ~1.6s period
+        pulse = 0.775 + 0.225 * math.sin(
+            pygame.time.get_ticks() * (2 * math.pi / 1600)
         )
-
-        if player_in_range:
-            # Active zone with pulsing effect
-            ticks = pygame.time.get_ticks()
-            pulse_alpha = int(100 + math.sin(ticks * 0.01) * 50)
-            pulse_surface = pygame.Surface((zone_width, 38), pygame.SRCALPHA)
-            pulse_surface.fill((*GREEN, pulse_alpha))
-            surface.blit(pulse_surface, (hit_zone_left, SCREEN_HEIGHT - 39))
-
-            # Zone border
-            pygame.draw.rect(surface, GREEN, zone_rect, 2)
-        else:
-            # Inactive zone
-            pygame.draw.rect(surface, (60, 60, 60), zone_rect, 1)
+        glow = self._range_glow.copy()
+        glow.set_alpha(int(255 * pulse))
+        glow_rect = glow.get_rect(midbottom=(int(bag_x), floor_y))
+        surface.blit(glow, glow_rect)
+        pygame.draw.line(
+            surface,
+            theme.STAMINA_GREEN,
+            (glow_rect.left, floor_y),
+            (glow_rect.right, floor_y),
+            3,
+        )
+        chip_font = get_font("barlow-semibold", 15)
+        chip_w = ui.tracked_label_width("IN RANGE", chip_font, s(4)) + 2 * s(18) + s(16)
+        ui.draw_chip(
+            surface,
+            (int(bag_x) - chip_w // 2, glow_rect.top - s(20)),
+            "IN RANGE",
+            theme.STAMINA_GREEN,
+            font_size=15,
+            dot=True,
+        )
 
     def run(self) -> None:
         """Main game loop."""

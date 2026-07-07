@@ -48,7 +48,11 @@ _SYMBOLS = ("↑", "↓", "←", "→", "↵")
 
 
 def draw_symbol(
-    surface: pygame.Surface, center: Tuple[int, int], symbol: str, color: Color, height: int
+    surface: pygame.Surface,
+    center: Tuple[int, int],
+    symbol: str,
+    color: Color,
+    height: int,
 ) -> None:
     """Draw ↑ ↓ ← → ↵ as line art centered on `center`."""
     cx, cy = center
@@ -69,7 +73,9 @@ def draw_symbol(
         pygame.draw.line(surface, color, (cx + d * (h - w), cy + w), tip, lw)
     elif symbol == "↵":
         tip = (cx - h, cy + w)
-        pygame.draw.line(surface, color, (cx + h, cy - h + w // 2), (cx + h, cy + w), lw)
+        pygame.draw.line(
+            surface, color, (cx + h, cy - h + w // 2), (cx + h, cy + w), lw
+        )
         pygame.draw.line(surface, color, (cx + h, cy + w), tip, lw)
         pygame.draw.line(surface, color, (cx - h + w, cy), tip, lw)
         pygame.draw.line(surface, color, (cx - h + w, cy + 2 * w), tip, lw)
@@ -94,14 +100,20 @@ def draw_keycap(
     radius = theme.s(7)
     if gold:
         pygame.draw.rect(cap, (*theme.GOLD, 40), cap.get_rect(), border_radius=radius)
-        pygame.draw.rect(cap, (*theme.GOLD, 255), cap.get_rect(), 1, border_radius=radius)
+        pygame.draw.rect(
+            cap, (*theme.GOLD, 255), cap.get_rect(), 1, border_radius=radius
+        )
         text_color = theme.GOLD
     else:
         pygame.draw.rect(cap, theme.KEYCAP_FILL, cap.get_rect(), border_radius=radius)
-        pygame.draw.rect(cap, theme.KEYCAP_BORDER, cap.get_rect(), 1, border_radius=radius)
+        pygame.draw.rect(
+            cap, theme.KEYCAP_BORDER, cap.get_rect(), 1, border_radius=radius
+        )
         text_color = theme.TEXT_PRIMARY
     if label in _SYMBOLS:
-        draw_symbol(cap, (rect.width // 2, rect.height // 2), label, text_color, size // 3)
+        draw_symbol(
+            cap, (rect.width // 2, rect.height // 2), label, text_color, size // 3
+        )
     else:
         text = get_font("bebas", 24).render(label, True, text_color)
         cap.blit(text, text.get_rect(center=(rect.width // 2, rect.height // 2)))
@@ -157,7 +169,9 @@ def draw_segmented_bar(
     divider_w = 2
     for i in range(1, segments):
         x = int(rect.width * i / segments) - divider_w // 2
-        pygame.draw.rect(bar, (*theme.PANEL, 255), pygame.Rect(x, 0, divider_w, rect.height))
+        pygame.draw.rect(
+            bar, (*theme.PANEL, 255), pygame.Rect(x, 0, divider_w, rect.height)
+        )
     surface.blit(bar, rect.topleft)
 
 
@@ -192,19 +206,25 @@ def draw_chip(
     text_w = tracked_label_width(text, font, tracking)
     pad_x, pad_y = theme.s(18), theme.s(8)
     dot_space = theme.s(16) if dot else 0
-    rect = pygame.Rect(pos[0], pos[1], text_w + 2 * pad_x + dot_space, font.get_height() + 2 * pad_y)
+    rect = pygame.Rect(
+        pos[0], pos[1], text_w + 2 * pad_x + dot_space, font.get_height() + 2 * pad_y
+    )
     chip = pygame.Surface(rect.size, pygame.SRCALPHA)
     radius = rect.height // 2
     if filled:
         pygame.draw.rect(chip, (*color, 255), chip.get_rect(), border_radius=radius)
         text_color = theme.PANEL
     else:
-        pygame.draw.rect(chip, (*theme.PANEL, 200), chip.get_rect(), border_radius=radius)
+        pygame.draw.rect(
+            chip, (*theme.PANEL, 200), chip.get_rect(), border_radius=radius
+        )
         pygame.draw.rect(chip, (*color, 255), chip.get_rect(), 1, border_radius=radius)
         text_color = color
     x = pad_x
     if dot:
-        pygame.draw.circle(chip, (*color, 255), (pad_x + theme.s(4), rect.height // 2), theme.s(4))
+        pygame.draw.circle(
+            chip, (*color, 255), (pad_x + theme.s(4), rect.height // 2), theme.s(4)
+        )
         x += dot_space
     draw_tracked_label(chip, (x, pad_y), text, font, text_color, tracking)
     surface.blit(chip, rect.topleft)
@@ -225,7 +245,9 @@ def draw_menu_row(
         row.fill((*theme.GOLD, 20))  # rgba(240,195,48,0.08)
         surface.blit(row, rect.topleft)
         pygame.draw.rect(
-            surface, theme.GOLD, pygame.Rect(rect.left, rect.top, theme.s(4), rect.height)
+            surface,
+            theme.GOLD,
+            pygame.Rect(rect.left, rect.top, theme.s(4), rect.height),
         )
         color = theme.GOLD
     else:
@@ -233,7 +255,9 @@ def draw_menu_row(
     label = font.render(text, True, color)
     if not selected:
         label.set_alpha(theme.TEXT_DIM_ALPHA)
-    surface.blit(label, (rect.left + theme.s(24), rect.centery - label.get_height() // 2))
+    surface.blit(
+        label, (rect.left + theme.s(24), rect.centery - label.get_height() // 2)
+    )
     if selected and hint:
         if hint in _SYMBOLS:
             size = theme.s(22)
@@ -249,7 +273,10 @@ def draw_menu_row(
             hint_surf.set_alpha(180)
             surface.blit(
                 hint_surf,
-                (rect.right - theme.s(24) - hint_surf.get_width(), rect.centery - hint_surf.get_height() // 2),
+                (
+                    rect.right - theme.s(24) - hint_surf.get_width(),
+                    rect.centery - hint_surf.get_height() // 2,
+                ),
             )
 
 
@@ -265,11 +292,17 @@ def draw_toggle(
     radius = h // 2
     knob_r = max(2, h // 2 - theme.s(5))
     if on:
-        pygame.draw.rect(pill, (*theme.GOLD, 255), pill.get_rect(), border_radius=radius)
+        pygame.draw.rect(
+            pill, (*theme.GOLD, 255), pill.get_rect(), border_radius=radius
+        )
         pygame.draw.circle(pill, (*theme.PANEL, 255), (w - radius, h // 2), knob_r)
     else:
-        pygame.draw.rect(pill, (255, 255, 255, 36), pill.get_rect(), border_radius=radius)
-        pygame.draw.circle(pill, (*theme.TEXT_DIM, theme.TEXT_DIM_ALPHA), (radius, h // 2), knob_r)
+        pygame.draw.rect(
+            pill, (255, 255, 255, 36), pill.get_rect(), border_radius=radius
+        )
+        pygame.draw.circle(
+            pill, (*theme.TEXT_DIM, theme.TEXT_DIM_ALPHA), (radius, h // 2), knob_r
+        )
     surface.blit(pill, rect.topleft)
     return rect
 

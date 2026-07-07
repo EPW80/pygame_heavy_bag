@@ -61,9 +61,9 @@ class HeavyBag:
         self.is_glowing = False
         self.glow_timer = 0
 
-        # Cache fonts for performance (avoid creating each frame)
-        self._font_damage = pygame.font.Font(None, 24)
-        self._font_brand = pygame.font.Font(None, 20)
+        # Font is created lazily: HeavyBag is constructed in tests without
+        # pygame.font initialized.
+        self._font_brand_cache = None
 
     def update(self) -> None:
         """Update bag physics and visual effects."""
@@ -281,47 +281,11 @@ class HeavyBag:
     def _draw_additional_effects(
         self, screen: pygame.Surface, x: float, y: float, damage_ratio: float
     ) -> None:
-        """Draw additional visual effects around the bag."""
-        # Damage percentage indicator with enhanced styling
-        if self.damage > 0:
-            damage_percent = int(damage_ratio * 100)
+        """Draw additional visual effects around the bag.
 
-            # Background bar
-            bar_width = 60
-            bar_height = 8
-            bar_x = x - bar_width // 2
-            bar_y = y - 30
-
-            pygame.draw.rect(
-                screen, BLACK,
-                (bar_x - 1, bar_y - 1, bar_width + 2, bar_height + 2)
-            )
-            pygame.draw.rect(
-                screen, DARK_GRAY, (bar_x, bar_y, bar_width, bar_height)
-            )
-
-            # Damage fill
-            fill_width = int(bar_width * damage_ratio)
-            if damage_ratio > 0.7:
-                color = RED
-            elif damage_ratio > 0.4:
-                color = ORANGE
-            else:
-                color = YELLOW
-            pygame.draw.rect(
-                screen, color, (bar_x, bar_y, fill_width, bar_height)
-            )
-
-            # Damage text
-            damage_text = self._font_damage.render(f"{damage_percent}%", True, WHITE)
-            damage_outline = self._font_damage.render(f"{damage_percent}%", True, BLACK)
-
-            damage_rect = damage_text.get_rect(center=(x, y - 45))
-            outline_rect = damage_outline.get_rect(center=(x + 1, y - 44))
-
-            screen.blit(damage_outline, outline_rect)
-            screen.blit(damage_text, damage_rect)
-
+        The damage bar lives in the HUD's BAG chip now (design handoff
+        screen 2), not floating above the bag.
+        """
         # Swing trail effect
         if abs(self.angular_velocity) > 0.5:
             trail_surface = pygame.Surface(
@@ -392,6 +356,10 @@ class HeavyBag:
             )
 
         # Brand text
-        text = self._font_brand.render("HEAVY", True, DARK_BROWN)
+        if self._font_brand_cache is None:
+            from src.utils.fonts import get_font
+
+            self._font_brand_cache = get_font("bebas", 30)
+        text = self._font_brand_cache.render("HEAVY", True, DARK_BROWN)
         text_rect = text.get_rect(center=(bag_x, bag_y + self.height // 2))
         screen.blit(text, text_rect)
