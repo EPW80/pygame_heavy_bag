@@ -34,6 +34,8 @@ logger = get_logger()
 from .player import Player
 from .heavy_bag import HeavyBag
 from .menu import Menu
+from .settings_screen import SettingsScreen
+from .tutorial_screen import TutorialScreen
 from .effects import (
     FloatingText,
     HitEffect,
@@ -89,6 +91,8 @@ class GameManager:
             self.total_punches_all_time,
             self.best_combo_all_time,
         )
+        self.settings_screen = SettingsScreen(self.settings)
+        self.tutorial_screen = TutorialScreen()
 
         # Game objects (initialized when game starts)
         self.heavy_bag = None
@@ -141,11 +145,22 @@ class GameManager:
                 if action == "Start Game":
                     self.start_game()
                 elif action == "Tutorial":
-                    logger.info("Tutorial not yet implemented")
+                    self.state = GameState.TUTORIAL
                 elif action == "Settings":
-                    logger.info("Settings not yet implemented")
+                    self.state = GameState.SETTINGS
                 elif action == "Quit":
                     self.running = False
+
+            # Settings screen handling
+            elif self.state == GameState.SETTINGS:
+                if self.settings_screen.handle_input(event) == "back":
+                    self.state = GameState.MENU
+                    self._save_settings()
+
+            # Tutorial screen handling
+            elif self.state == GameState.TUTORIAL:
+                if self.tutorial_screen.handle_input(event) == "back":
+                    self.state = GameState.MENU
 
             # Game handling
             elif self.state == GameState.PLAYING:
@@ -491,6 +506,18 @@ class GameManager:
         if self.player.combo > self.best_combo_all_time:
             self.best_combo_all_time = self.player.combo
 
+    def _save_settings(self) -> None:
+        """Persist settings without touching session progress."""
+        try:
+            SaveManager.save_data(
+                self.high_score,
+                self.total_punches_all_time,
+                self.best_combo_all_time,
+                self.settings,
+            )
+        except SaveError as e:
+            logger.error(f"Failed to save settings: {e}")
+
     def save_game(self) -> None:
         """Save current game progress."""
         self.total_punches_all_time += self.player.total_punches
@@ -756,6 +783,12 @@ class GameManager:
                 self.best_combo_all_time,
             )
             self.menu.draw(self.screen)
+
+        elif self.state == GameState.SETTINGS:
+            self.settings_screen.draw(self.screen)
+
+        elif self.state == GameState.TUTORIAL:
+            self.tutorial_screen.draw(self.screen)
 
         elif self.state in [GameState.PLAYING, GameState.PAUSED]:
             # Apply screen shake

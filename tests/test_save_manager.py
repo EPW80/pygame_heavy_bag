@@ -82,6 +82,39 @@ class TestSaveManagerBasics(unittest.TestCase):
             self.assertEqual(combo, 30)
             self.assertEqual(settings_out.difficulty, Difficulty.EXPERT)
 
+    def test_hud_variant_round_trip(self):
+        """Test that hud_variant persists through save/load."""
+        settings_in = GameSettings(hud_variant="minimal")
+
+        with patch("src.utils.save_manager.SAVE_FILE", self.temp_file):
+            SaveManager.save_data(0, 0, 0, settings_in)
+            _, _, _, settings_out = SaveManager.load_data()
+
+        self.assertEqual(settings_out.hud_variant, "minimal")
+
+    def test_load_pre_hud_variant_save_defaults_to_full(self):
+        """Old save files without hud_variant load with the default."""
+        legacy_data = {
+            "version": SAVE_VERSION,
+            "high_score": 500,
+            "total_punches": 20,
+            "best_combo": 5,
+            "settings": {
+                "difficulty": Difficulty.NORMAL.value,
+                "sound_enabled": True,
+                "show_fps": False,
+                "particle_effects": True,
+            },
+        }
+        with open(self.temp_file, "w") as f:
+            json.dump(legacy_data, f)
+
+        with patch("src.utils.save_manager.SAVE_FILE", self.temp_file):
+            score, _, _, settings = SaveManager.load_data()
+
+        self.assertEqual(score, 500)
+        self.assertEqual(settings.hud_variant, "full")
+
     @patch("src.utils.save_manager.SAVE_FILE")
     def test_load_data_missing_file_returns_defaults(self, mock_save_file):
         """Test that load_data returns defaults when file doesn't exist."""

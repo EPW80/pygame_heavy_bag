@@ -94,6 +94,7 @@ class SaveManager:
                 "sound_enabled": settings.sound_enabled,
                 "show_fps": settings.show_fps,
                 "particle_effects": settings.particle_effects,
+                "hud_variant": settings.hud_variant,
             },
         }
 
@@ -165,6 +166,8 @@ class SaveManager:
                 sound_enabled=data["settings"]["sound_enabled"],
                 show_fps=data["settings"]["show_fps"],
                 particle_effects=data["settings"]["particle_effects"],
+                # Additive key: absent in pre-hud_variant saves
+                hud_variant=data["settings"].get("hud_variant", "full"),
             )
 
             result = (
