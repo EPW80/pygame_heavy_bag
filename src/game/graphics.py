@@ -463,73 +463,64 @@ class GraphicsManager:
         self.sprites["powerup_rage"] = create_powerup(RED, "R")
 
     def _create_backgrounds(self) -> None:
-        """Create gym background environments."""
-        # Main gym background
+        """Create the gym backdrop per the design handoff (README §Assets)."""
+        from src.utils import theme
+        from src.game import ui
+
+        s = theme.s
         gym_bg = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
-
-        # Gradient background (dark to lighter)
-        for y in range(SCREEN_HEIGHT):
-            intensity = int(15 + (y / SCREEN_HEIGHT) * 25)
-            color = (intensity, intensity, intensity + 5)
-            pygame.draw.line(gym_bg, color, (0, y), (SCREEN_WIDTH, y))
-
-        # Add gym equipment silhouettes
-        # Weight rack
-        pygame.draw.rect(
-            gym_bg, (30, 30, 30), (50, SCREEN_HEIGHT - 200, 100, 150)
+        ui.draw_vertical_gradient(
+            gym_bg,
+            gym_bg.get_rect(),
+            theme.SCENE_BG_TOP,
+            theme.SCENE_BG_BOTTOM,
         )
-        for i in range(5):
-            pygame.draw.circle(
-                gym_bg, (40, 40, 40), (70 + i * 15, SCREEN_HEIGHT - 180), 8
+
+        floor_y = SCREEN_HEIGHT - s(60)
+
+        # Mirror strips along the back wall
+        mirror_top, mirror_h = s(150), s(430)
+        for x in range(s(60), SCREEN_WIDTH, s(290)):
+            pygame.draw.rect(gym_bg, (46, 48, 58), (x, mirror_top, s(14), mirror_h))
+            pygame.draw.rect(
+                gym_bg, (66, 69, 82), (x + s(3), mirror_top, s(3), mirror_h)
             )
 
-        # Gym mirrors (reflective strips)
-        for x in range(0, SCREEN_WIDTH, 200):
-            pygame.draw.rect(gym_bg, (60, 60, 70), (x, 100, 10, 300))
-
-        # Floor with mat pattern
-        floor_y = SCREEN_HEIGHT - 40
-        pygame.draw.rect(gym_bg, DARK_GRAY, (0, floor_y, SCREEN_WIDTH, 40))
-        pygame.draw.line(
-            gym_bg, WHITE, (0, floor_y), (SCREEN_WIDTH, floor_y), 3
+        # Weight-rack silhouette (left, on the floor)
+        rack_w, rack_h = s(190), s(230)
+        rack = pygame.Rect(s(70), floor_y - rack_h, rack_w, rack_h)
+        pygame.draw.rect(gym_bg, (18, 19, 24), rack)
+        for i in range(5):
+            pygame.draw.circle(
+                gym_bg,
+                (28, 29, 35),
+                (rack.left + s(28) + i * s(34), rack.top + s(34)),
+                s(14),
+            )
+        pygame.draw.rect(
+            gym_bg, (28, 29, 35), (rack.left, rack.top + s(70), rack_w, s(8))
         )
 
-        # Mat grid pattern
-        for i in range(0, SCREEN_WIDTH, 50):
-            pygame.draw.line(gym_bg, GRAY, (i, floor_y), (i, SCREEN_HEIGHT), 1)
+        # Ceiling lights: fixture + soft glow pool
+        glow = ui.make_radial_glow(s(220), (255, 244, 200), 26)
+        for cx in (SCREEN_WIDTH // 4, SCREEN_WIDTH // 2, SCREEN_WIDTH * 3 // 4):
+            gym_bg.blit(glow, (cx - glow.get_width() // 2, -glow.get_height() // 3))
+            fixture = pygame.Rect(0, s(18), s(150), s(14))
+            fixture.centerx = cx
+            pygame.draw.rect(gym_bg, (10, 10, 13), fixture.inflate(s(8), s(6)))
+            pygame.draw.rect(gym_bg, (235, 226, 180), fixture)
 
-        # Ceiling lights (glowing rectangles)
-        for x in range(200, SCREEN_WIDTH - 200, 300):
-            light_rect = pygame.Rect(x - 50, 10, 100, 20)
-            pygame.draw.rect(gym_bg, (200, 200, 150), light_rect)
-            # Light beam effect
-            beam_points = [
-                (x - 80, 30),
-                (x + 80, 30),
-                (x + 30, SCREEN_HEIGHT // 3),
-                (x - 30, SCREEN_HEIGHT // 3),
-            ]
-            pygame.draw.polygon(gym_bg, (255, 255, 200, 30), beam_points)
+        # Floor band with mat grid
+        pygame.draw.rect(
+            gym_bg, theme.FLOOR, (0, floor_y, SCREEN_WIDTH, SCREEN_HEIGHT - floor_y)
+        )
+        pygame.draw.line(gym_bg, (44, 46, 54), (0, floor_y), (SCREEN_WIDTH, floor_y), 2)
+        for x in range(0, SCREEN_WIDTH + 1, s(96)):
+            pygame.draw.line(
+                gym_bg, (32, 33, 40), (x, floor_y + 2), (x, SCREEN_HEIGHT), 1
+            )
 
         self.backgrounds["gym"] = gym_bg
-
-        # Training room variant
-        training_bg = gym_bg.copy()
-
-        # Add motivational elements
-        font = pygame.font.Font(None, 48)
-        motivational_text = font.render("TRAIN HARD", True, (100, 100, 100))
-        training_bg.blit(motivational_text, (SCREEN_WIDTH - 250, 150))
-
-        # Add punching bag mounting system
-        pygame.draw.rect(
-            training_bg, (80, 80, 80), (SCREEN_WIDTH // 2 - 20, 0, 40, 60)
-        )
-        pygame.draw.circle(
-            training_bg, (100, 100, 100), (SCREEN_WIDTH // 2, 50), 15
-        )
-
-        self.backgrounds["training_room"] = training_bg
 
     def get_sprite(self, sprite_name: str) -> Optional[pygame.Surface]:
         """Get a sprite by name."""

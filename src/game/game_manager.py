@@ -84,6 +84,11 @@ class GameManager:
         # Game state
         self.state = GameState.MENU
         self.menu = Menu()
+        self.menu.set_stats(
+            self.high_score,
+            self.total_punches_all_time,
+            self.best_combo_all_time,
+        )
 
         # Game objects (initialized when game starts)
         self.heavy_bag = None
@@ -745,6 +750,11 @@ class GameManager:
     def draw(self) -> None:
         """Main drawing method for all game states with enhanced graphics."""
         if self.state == GameState.MENU:
+            self.menu.set_stats(
+                self.high_score,
+                self.total_punches_all_time,
+                self.best_combo_all_time,
+            )
             self.menu.draw(self.screen)
 
         elif self.state in [GameState.PLAYING, GameState.PAUSED]:
