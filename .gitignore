@@ -47,3 +47,6 @@ heavy_bag_save.bak
 
 # pygbag
 *.apk
+
+# Claude Code local settings
+.claude/
