@@ -6,6 +6,10 @@ requested 1080p spec size to window pixels. Falls back to pygame's default
 font if the TTFs are missing so a fresh clone still runs.
 """
 
+# Lazy annotations: pygame.font is not resolvable at import time on web
+# (pygbag materializes submodules only after pygame.init())
+from __future__ import annotations
+
 from pathlib import Path
 
 import pygame

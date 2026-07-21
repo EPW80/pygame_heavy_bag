@@ -6,6 +6,10 @@ with theme.s()). Helpers that need per-pixel alpha build a small SRCALPHA
 surface and blit it, so callers can draw straight onto the screen.
 """
 
+# Lazy annotations: pygame.font is not resolvable at import time on web
+# (pygbag materializes submodules only after pygame.init())
+from __future__ import annotations
+
 from typing import Optional, Tuple
 
 import pygame

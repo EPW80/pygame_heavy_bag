@@ -7,6 +7,8 @@ pill toggles for GameSettings fields. Mutates the GameSettings instance
 passed in; GameManager persists it when the screen is left.
 """
 
+from __future__ import annotations  # lazy annotations: pygame attrs are unavailable at import time on web (pygbag)
+
 import pygame
 
 from src.utils import theme

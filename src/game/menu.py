@@ -6,6 +6,8 @@ left-to-right dark gradient, left-aligned title column and menu rows, save
 stats bottom-right, keycap hints bottom-left.
 """
 
+from __future__ import annotations  # lazy annotations: pygame attrs are unavailable at import time on web (pygbag)
+
 import pygame
 
 from src.utils import theme

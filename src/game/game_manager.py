@@ -2,6 +2,8 @@
 Main game manager for the Heavy Bag Training game.
 """
 
+from __future__ import annotations  # lazy annotations: pygame attrs are unavailable at import time on web (pygbag)
+
 import asyncio
 
 import pygame

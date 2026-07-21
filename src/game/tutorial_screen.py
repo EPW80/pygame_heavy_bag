@@ -6,6 +6,8 @@ Static content generated from ATTACK_PROPERTIES, rendered once into a
 cached surface.
 """
 
+from __future__ import annotations  # lazy annotations: pygame attrs are unavailable at import time on web (pygbag)
+
 import pygame
 
 from src.utils import theme

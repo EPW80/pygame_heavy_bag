@@ -2,6 +2,8 @@
 Visual effects and particle systems for the Heavy Bag Training game.
 """
 
+from __future__ import annotations  # lazy annotations: pygame attrs are unavailable at import time on web (pygbag)
+
 import pygame
 import math
 import random
