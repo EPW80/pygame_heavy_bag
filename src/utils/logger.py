@@ -11,6 +11,8 @@ from pathlib import Path
 from typing import Optional
 from datetime import datetime
 
+from .paths import IS_WEB, get_data_dir
+
 
 class GameLogger:
     """Centralized logging manager for the game."""
@@ -23,10 +25,6 @@ class GameLogger:
         if GameLogger._initialized:
             return
 
-        # Create logs directory if it doesn't exist
-        self.log_dir = Path("logs")
-        self.log_dir.mkdir(exist_ok=True)
-
         # Create logger
         self.logger = logging.getLogger("HeavyBagGame")
         self.logger.setLevel(logging.DEBUG)
@@ -35,15 +33,24 @@ class GameLogger:
         if self.logger.handlers:
             return
 
-        # File handler - detailed logs
-        log_file = self.log_dir / f"game_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
-        file_handler = logging.FileHandler(log_file, encoding="utf-8")
-        file_handler.setLevel(logging.DEBUG)
-        file_formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-        )
-        file_handler.setFormatter(file_formatter)
+        # File handler - detailed logs. Skipped in the browser (no useful
+        # filesystem, and per-frame file I/O hurts pygbag performance).
+        if not IS_WEB:
+            try:
+                self.log_dir = get_data_dir() / "logs"
+                self.log_dir.mkdir(parents=True, exist_ok=True)
+                log_file = self.log_dir / f"game_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+                file_handler = logging.FileHandler(log_file, encoding="utf-8")
+                file_handler.setLevel(logging.DEBUG)
+                file_formatter = logging.Formatter(
+                    "%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s",
+                    datefmt="%Y-%m-%d %H:%M:%S",
+                )
+                file_handler.setFormatter(file_formatter)
+                self.logger.addHandler(file_handler)
+            except OSError as e:
+                # Read-only or otherwise unwritable data dir: console only
+                print(f"WARNING: file logging disabled ({e})")
 
         # Console handler - important messages only
         console_handler = logging.StreamHandler()
@@ -52,9 +59,6 @@ class GameLogger:
             "%(levelname)s: %(message)s"
         )
         console_handler.setFormatter(console_formatter)
-
-        # Add handlers
-        self.logger.addHandler(file_handler)
         self.logger.addHandler(console_handler)
 
         GameLogger._initialized = True

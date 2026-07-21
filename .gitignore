@@ -40,3 +40,10 @@ config.ini
 # OS
 .DS_Store
 Thumbs.db
+
+# Runtime artifacts
+logs/
+heavy_bag_save.bak
+
+# pygbag
+*.apk

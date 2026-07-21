@@ -20,20 +20,19 @@ Controls:
     ESC: Pause/Menu navigation
 """
 
+import asyncio
+
 from src.game import GameManager
 
 
-def main():
+async def main():
     """Main entry point for the Heavy Bag Training game."""
-    try:
-        game = GameManager()
-        game.run()
-    except KeyboardInterrupt:
-        print("\nGame interrupted by user.")
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        print("Please check your installation and try again.")
+    game = GameManager()
+    await game.run()
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\nGame interrupted by user.")

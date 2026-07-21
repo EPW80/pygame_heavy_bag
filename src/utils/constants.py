@@ -4,6 +4,7 @@ Game constants and enums for Heavy Bag Training.
 
 import os
 import platform
+import sys
 from enum import Enum
 from dataclasses import dataclass
 
@@ -16,6 +17,10 @@ def _setup_wsl_display() -> None:
     Only applies settings if running on Linux with WSL detected and
     DISPLAY is not already set.
     """
+    # Never touch SDL/X11 env vars in the browser (pygbag/emscripten)
+    if sys.platform == "emscripten":
+        return
+
     # Only configure if on Linux
     if platform.system() != "Linux":
         return

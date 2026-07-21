@@ -4,6 +4,10 @@ A professional boxing training game built with Python and Pygame, featuring
 realistic physics, a fully redesigned UI, modular architecture, and advanced
 training features.
 
+**▶ Play in your browser:** [epw80.github.io/pygame_heavy_bag](https://epw80.github.io/pygame_heavy_bag/)
+(built with [pygbag](https://pygame-web.github.io/), deployed automatically
+from `main` via GitHub Actions)
+
 ## 🎮 Features
 
 ### Core Gameplay
@@ -69,6 +73,24 @@ training features.
    ```bash
    pip install pygame
    ```
+
+### Web Build (pygbag)
+
+The game also runs in the browser via WebAssembly. To build and test locally:
+
+```bash
+pip install pygbag
+# Build from a clean checkout (pygbag packs the whole folder, including venv/
+# if present) — a git worktree is the easiest way:
+git worktree add /tmp/hb-web HEAD
+cd /tmp/hb-web && python -m pygbag main.py
+```
+
+Then open `http://localhost:8000` (append `#debug` for an on-page Python
+console). Pushes to `main` deploy automatically to GitHub Pages via
+`.github/workflows/deploy.yml`. On the web, progress is saved to the
+browser's localStorage; on desktop it lives in a per-user data directory
+(e.g. `~/.local/share/heavy-bag-training/`).
 
 ## 🎯 How to Play
 

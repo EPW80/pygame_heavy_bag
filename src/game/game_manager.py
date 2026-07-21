@@ -2,6 +2,8 @@
 Main game manager for the Heavy Bag Training game.
 """
 
+import asyncio
+
 import pygame
 import math
 import random
@@ -55,9 +57,9 @@ class GameManager:
     """Main game loop and state management."""
 
     def __init__(self):
-        # Initialize Pygame
+        # Initialize Pygame (pygame.init() covers the mixer where available;
+        # an explicit mixer.init() can hang on audio-less hosts and on web)
         pygame.init()
-        pygame.mixer.init()
 
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         pygame.display.set_caption("Heavy Bag Training - Pro Edition")
@@ -1243,13 +1245,16 @@ class GameManager:
             dot=True,
         )
 
-    def run(self) -> None:
+    async def run(self) -> None:
         """Main game loop."""
         while self.running:
             self.handle_events()
             self.update()
             self.draw()
             self.clock.tick(FPS)
+            # Yield to the browser event loop (required by pygbag); no-op pacing
+            # cost on desktop
+            await asyncio.sleep(0)
 
         # Save before quitting
         if self.player:

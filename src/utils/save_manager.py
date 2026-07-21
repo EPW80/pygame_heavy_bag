@@ -7,11 +7,69 @@ from typing import Tuple, Dict, Any, Optional
 from pathlib import Path
 from .constants import SAVE_FILE, GameSettings, Difficulty
 from .logger import get_logger, SaveError, LoadError, CorruptedDataError
+from .paths import IS_WEB, get_data_dir
 
 logger = get_logger()
 
 # Save file version for future compatibility
 SAVE_VERSION = 1
+
+# localStorage key used in the browser (pygbag/emscripten)
+WEB_SAVE_KEY = "heavy_bag_save"
+
+
+def _save_path() -> Path:
+    """Desktop save file location in the per-user data directory."""
+    return get_data_dir() / SAVE_FILE
+
+
+def _read_save_text() -> Optional[str]:
+    """Read the raw save payload, or None if no save exists.
+
+    Web: browser localStorage. Desktop: user data dir, falling back once to a
+    legacy save in the current working directory (pre-data-dir versions).
+    """
+    if IS_WEB:
+        from platform import window  # pygbag exposes the JS window here
+
+        return window.localStorage.getItem(WEB_SAVE_KEY)
+
+    path = _save_path()
+    if not path.exists():
+        legacy = Path(SAVE_FILE)
+        if legacy.exists():
+            logger.info(f"Migrating legacy save from {legacy.resolve()}")
+            path = legacy
+        else:
+            return None
+    with open(path, "r", encoding="utf-8") as f:
+        return f.read()
+
+
+def _write_save_text(text: str) -> None:
+    """Write the raw save payload (localStorage on web, data dir on desktop)."""
+    if IS_WEB:
+        from platform import window
+
+        window.localStorage.setItem(WEB_SAVE_KEY, text)
+        return
+
+    save_path = _save_path()
+    # Create backup of existing save file
+    backup_path = save_path.with_suffix(".bak")
+    if save_path.exists():
+        try:
+            save_path.rename(backup_path)
+            logger.debug(f"Created backup: {backup_path}")
+        except Exception as e:
+            logger.warning(f"Could not create backup: {e}")
+
+    with open(save_path, "w", encoding="utf-8") as f:
+        f.write(text)
+
+    # Remove backup on successful save
+    if backup_path.exists():
+        backup_path.unlink()
 
 
 class SaveManager:
@@ -99,25 +157,8 @@ class SaveManager:
         }
 
         try:
-            # Create backup of existing save file
-            save_path = Path(SAVE_FILE)
-            if save_path.exists():
-                backup_path = save_path.with_suffix(".bak")
-                try:
-                    save_path.rename(backup_path)
-                    logger.debug(f"Created backup: {backup_path}")
-                except Exception as e:
-                    logger.warning(f"Could not create backup: {e}")
-
-            # Write new save file
-            with open(SAVE_FILE, "w", encoding="utf-8") as f:
-                json.dump(data, f, indent=2)
-
+            _write_save_text(json.dumps(data, indent=2))
             logger.info(f"Successfully saved game data to {SAVE_FILE}")
-
-            # Remove backup on successful save
-            if save_path.with_suffix(".bak").exists():
-                save_path.with_suffix(".bak").unlink()
 
         except PermissionError as e:
             logger.error(f"Permission denied writing to {SAVE_FILE}: {e}")
@@ -143,14 +184,12 @@ class SaveManager:
         """
         logger.info(f"Loading game data from {SAVE_FILE}")
 
-        # Check if save file exists
-        if not Path(SAVE_FILE).exists():
-            logger.info("Save file not found, using default values")
-            return 0, 0, 0, GameSettings()
-
         try:
-            with open(SAVE_FILE, "r", encoding="utf-8") as f:
-                data = json.load(f)
+            text = _read_save_text()
+            if text is None:
+                logger.info("Save file not found, using default values")
+                return 0, 0, 0, GameSettings()
+            data = json.loads(text)
 
             # Handle version compatibility (for future)
             version = data.get("version", 1)
@@ -185,15 +224,16 @@ class SaveManager:
             return 0, 0, 0, GameSettings()
         except json.JSONDecodeError as e:
             logger.error(f"Corrupted save file (invalid JSON): {e}")
-            # Try to restore from backup
-            backup_path = Path(SAVE_FILE).with_suffix(".bak")
-            if backup_path.exists():
-                logger.info("Attempting to restore from backup")
-                try:
-                    backup_path.rename(SAVE_FILE)
-                    return SaveManager.load_data()  # Retry
-                except Exception as restore_error:
-                    logger.error(f"Failed to restore backup: {restore_error}")
+            # Try to restore from backup (desktop only; web has no backup file)
+            if not IS_WEB:
+                backup_path = _save_path().with_suffix(".bak")
+                if backup_path.exists():
+                    logger.info("Attempting to restore from backup")
+                    try:
+                        backup_path.rename(_save_path())
+                        return SaveManager.load_data()  # Retry
+                    except Exception as restore_error:
+                        logger.error(f"Failed to restore backup: {restore_error}")
             raise CorruptedDataError(f"Save file is corrupted: {e}") from e
         except CorruptedDataError:
             raise  # Re-raise our custom error

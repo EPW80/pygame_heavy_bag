@@ -115,24 +115,18 @@ class TestSaveManagerBasics(unittest.TestCase):
         self.assertEqual(score, 500)
         self.assertEqual(settings.hud_variant, "full")
 
-    @patch("src.utils.save_manager.SAVE_FILE")
-    def test_load_data_missing_file_returns_defaults(self, mock_save_file):
+    def test_load_data_missing_file_returns_defaults(self):
         """Test that load_data returns defaults when file doesn't exist."""
         nonexistent_file = os.path.join(self.temp_dir, "nonexistent.json")
-        mock_save_file.__str__ = lambda x: nonexistent_file
-        mock_save_file.return_value = nonexistent_file
 
-        # Mock Path.exists to return False
-        with patch("src.utils.save_manager.Path") as mock_path:
-            mock_path.return_value.exists.return_value = False
-
+        with patch("src.utils.save_manager.SAVE_FILE", nonexistent_file):
             score, punches, combo, settings = SaveManager.load_data()
 
-            self.assertEqual(score, 0)
-            self.assertEqual(punches, 0)
-            self.assertEqual(combo, 0)
-            self.assertIsInstance(settings, GameSettings)
-            self.assertEqual(settings.difficulty, Difficulty.NORMAL)
+        self.assertEqual(score, 0)
+        self.assertEqual(punches, 0)
+        self.assertEqual(combo, 0)
+        self.assertIsInstance(settings, GameSettings)
+        self.assertEqual(settings.difficulty, Difficulty.NORMAL)
 
 
 @unittest.skipUnless(IMPORTS_AVAILABLE, "Game modules not available")
